@@ -109,7 +109,7 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         ExecutorInfo.Builder updatedExecutor = ExecutorInfo.newBuilder(taskInfo.getExecutor());
         updatedExecutor = updateExecutorCmd(updatedExecutor, config, configName);
         updatedExecutor.setExecutorId(ExecutorID.newBuilder().setValue("").build()); // Set later by ExecutorRequirement
-        updatedExecutor.setContainer(getNewContainer());
+        updatedExecutor.setContainer(getNewContainer(VOLUME_PATH_PREFIX));
 
         try {
             ExecutorInfo updateExecutorInfo = updatedExecutor.build();
@@ -291,13 +291,12 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         String role = config.getServiceConfiguration().getRole();
         String principal = config.getServiceConfiguration().getPrincipal();
 
-        //String containerPath = VOLUME_PATH_PREFIX + UUID.randomUUID();
-        String containerPath = "logs";
+        String containerPath = VOLUME_PATH_PREFIX + UUID.randomUUID();
 
         TaskInfo.Builder taskBuilder = TaskInfo.newBuilder()
                 .setName(brokerName)
                 .setTaskId(TaskID.newBuilder().setValue("").build()) // Set later by TaskRequirement
-                .setContainer(getNewContainer())
+                .setContainer(getNewContainer(VOLUME_PATH_PREFIX))
                 .setSlaveId(SlaveID.newBuilder().setValue("").build()) // Set later
                 .addResources(ResourceUtils.getDesiredScalar(
                         role,
@@ -402,7 +401,7 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         envMap.put("KAFKA_ZOOKEEPER_URI", config.getKafkaConfiguration().getKafkaZkUri());
         envMap.put(KafkaEnvConfigUtils.toEnvName("zookeeper.connect"), config.getFullKafkaZookeeperPath());
         envMap.put(KafkaEnvConfigUtils.toEnvName("broker.id"), Integer.toString(brokerId));
-        envMap.put(KafkaEnvConfigUtils.toEnvName("log.dirs"), containerPath);
+        envMap.put(KafkaEnvConfigUtils.toEnvName("log.dirs"), containerPath + "/" + brokerName);
         envMap.put("KAFKA_HEAP_OPTS", getKafkaHeapOpts(config.getBrokerConfiguration().getHeap()));
 
         return CommandInfo.newBuilder()
@@ -446,7 +445,7 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         ExecutorInfo.Builder builder = ExecutorInfo.newBuilder()
                 .setName(brokerName)
                 .setExecutorId(ExecutorID.newBuilder().setValue("").build()) // Set later by ExecutorRequirement
-                .setContainer(getNewContainer())
+                .setContainer(getNewContainer(VOLUME_PATH_PREFIX))
                 .setFrameworkId(schedulerState.getStateStore().fetchFrameworkId().get())
                 .setCommand(getNewExecutorCmd(config, configName, brokerId))
                 .addResources(ResourceUtils.getDesiredScalar(role, principal, "cpus", executorConfiguration.getCpus()))
@@ -457,11 +456,11 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         return builder.build();
     }
 
-    private ContainerInfo getNewContainer(){
+    private ContainerInfo getNewContainer(String containerPath){
         return org.apache.mesos.Protos.ContainerInfo.newBuilder()
                 .addVolumes(org.apache.mesos.Protos.Volume.newBuilder()
                 .setContainerPath("logs")
-                .setHostPath("/var/log/")
+                .setHostPath(containerPath)
                 .setMode(Volume.Mode.RW)
                 .build())
                 .setType(ContainerInfo.Type.MESOS)
