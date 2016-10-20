@@ -16,6 +16,7 @@ import org.apache.mesos.config.ConfigStoreException;
 import org.apache.mesos.offer.*;
 import org.apache.mesos.offer.constrain.PlacementRuleGenerator;
 
+
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.*;
@@ -238,6 +239,7 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         ExecutorConfiguration executorConfiguration = config.getExecutorConfiguration();
 
         List<CommandInfo.URI> uris = new ArrayList<>();
+        uris.add(uri(executorConfiguration.getDvdcli()));
         uris.add(uri(brokerConfiguration.getJavaUri()));
         uris.add(uri(brokerConfiguration.getKafkaUri()));
         uris.add(uri(brokerConfiguration.getOverriderUri()));
@@ -274,6 +276,7 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         newEnvMap.putAll(getUpdatedExecutorEnvironment(config, configName));
 
         CommandInfo.Builder cmdBuilder = CommandInfo.newBuilder(existingCommandInfo);
+
         cmdBuilder.setEnvironment(OfferUtils.environment(newEnvMap))
                 .clearUris()
                 .addAllUris(getUpdatedUris(config));
@@ -398,7 +401,9 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         envMap.put("KAFKA_ZOOKEEPER_URI", config.getKafkaConfiguration().getKafkaZkUri());
         envMap.put(KafkaEnvConfigUtils.toEnvName("zookeeper.connect"), config.getFullKafkaZookeeperPath());
         envMap.put(KafkaEnvConfigUtils.toEnvName("broker.id"), Integer.toString(brokerId));
-        envMap.put(KafkaEnvConfigUtils.toEnvName("log.dirs"), containerPath + "/" + brokerName);
+        envMap.put(KafkaEnvConfigUtils.toEnvName("log.dirs"), config.getExecutorConfiguration().getContainerPath() +
+                "/" + containerPath +
+                "/" + brokerName);
         envMap.put("KAFKA_HEAP_OPTS", getKafkaHeapOpts(config.getBrokerConfiguration().getHeap()));
 
         return CommandInfo.newBuilder()
@@ -409,12 +414,26 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
 
     private CommandInfo getNewExecutorCmd(KafkaSchedulerConfiguration config, String configName, int brokerId)
             throws ConfigStoreException {
+
+        String brokerName = OfferUtils.brokerIdToTaskName(brokerId);
         BrokerConfiguration brokerConfiguration = config.getBrokerConfiguration();
         ZookeeperConfiguration zookeeperConfiguration = config.getZookeeperConfig();
         ExecutorConfiguration executorConfiguration = config.getExecutorConfiguration();
         String frameworkName = config.getServiceConfiguration().getName();
 
-        final String executorCommand = "./executor/bin/kafka-executor server ./executor/conf/executor.yml";
+        // Get rexray option here.
+        StringBuilder stringBuilder = new StringBuilder();
+        if (executorConfiguration.getVolumeDriver().equalsIgnoreCase("rexray")) {
+            stringBuilder.append("./dvdcli mount --volumename=");
+            stringBuilder.append(brokerName.replace("broker-", executorConfiguration.getVolumeName() + "_"));
+            stringBuilder.append(" --volumedriver=");
+            stringBuilder.append(executorConfiguration.getVolumeDriver().trim());
+            stringBuilder.append(" && ");
+        }
+
+        stringBuilder.append("./executor/bin/kafka-executor server ./executor/conf/executor.yml");
+        final String executorCommand = stringBuilder.toString();
+
         Map<String, String> executorEnvMap = new HashMap<>();
         executorEnvMap.put(JAVA_HOME_KEY, JAVA_HOME_VALUE);
         executorEnvMap.put("FRAMEWORK_NAME", frameworkName);
@@ -424,6 +443,7 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         return CommandInfo.newBuilder()
                 .setValue(executorCommand)
                 .setEnvironment(OfferUtils.environment(executorEnvMap))
+                .addUris(uri(executorConfiguration.getDvdcli()))
                 .addUris(uri(brokerConfiguration.getJavaUri()))
                 .addUris(uri(brokerConfiguration.getKafkaUri()))
                 .addUris(uri(brokerConfiguration.getOverriderUri()))
@@ -438,26 +458,27 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         String brokerName = OfferUtils.brokerIdToTaskName(brokerId);
         String role = config.getServiceConfiguration().getRole();
         String principal = config.getServiceConfiguration().getPrincipal();
+        String hostPath = executorConfiguration.getHostPath();
+        String containerPath = executorConfiguration.getContainerPath();
 
         ExecutorInfo.Builder builder = ExecutorInfo.newBuilder()
                 .setName(brokerName)
                 .setExecutorId(ExecutorID.newBuilder().setValue("").build()) // Set later by ExecutorRequirement
-                .setContainer(getNewContainer())
+                .setContainer(getNewContainer(hostPath, containerPath))
                 .setFrameworkId(schedulerState.getStateStore().fetchFrameworkId().get())
                 .setCommand(getNewExecutorCmd(config, configName, brokerId))
                 .addResources(ResourceUtils.getDesiredScalar(role, principal, "cpus", executorConfiguration.getCpus()))
                 .addResources(ResourceUtils.getDesiredScalar(role, principal, "mem", executorConfiguration.getMem()))
                 .addResources(DynamicPortRequirement.getDesiredDynamicPort("API_PORT", role, principal));
 
-
         return builder.build();
     }
 
-    private ContainerInfo getNewContainer(){
+    private ContainerInfo getNewContainer(String hostPath, String containerPath){
         return org.apache.mesos.Protos.ContainerInfo.newBuilder()
                 .addVolumes(org.apache.mesos.Protos.Volume.newBuilder()
-                .setContainerPath("logs")
-                .setHostPath("/var/log/")
+                .setContainerPath(containerPath)
+                .setHostPath(hostPath)
                 .setMode(Volume.Mode.RW)
                 .build())
                 .setType(ContainerInfo.Type.MESOS)

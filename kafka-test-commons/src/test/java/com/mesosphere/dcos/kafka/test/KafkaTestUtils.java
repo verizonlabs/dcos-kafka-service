@@ -3,6 +3,7 @@ package com.mesosphere.dcos.kafka.test;
 import org.apache.mesos.Protos;
 import org.apache.mesos.offer.TaskUtils;
 
+import java.util.ArrayList;
 import java.util.UUID;
 
 /**
@@ -13,6 +14,12 @@ public class KafkaTestUtils {
     public static final String testPrincipal = "test-principal";
     public static final String testResourceId = "test-resource-id";
     public static final String testTaskName = "broker-0";
+    public static final String testHostPath = "/var/log/";
+    public static final String testContainerPath = "logs";
+    public static final String testVolumeName = "kafka_test";
+    public static final String testVolumeDriver = "rexray";
+    public static final String testDvdcli = "file:///opt/mesosphere/bin/dvdcli";
+    public static final ArrayList<String> testHostFilter = new ArrayList<String>() {{ add("SDS"); add("POD1"); }};
     public static final Protos.TaskID testTaskId = TaskUtils.toTaskId(testTaskName);
     public static final String testSlaveId = "test-slave-id";
     public static final String testConfigName = UUID.randomUUID().toString();

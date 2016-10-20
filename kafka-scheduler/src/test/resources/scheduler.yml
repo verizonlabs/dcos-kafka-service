@@ -26,6 +26,12 @@ scheduler_configuration:
     mem: ${EXECUTOR_MEM:-256}
     disk: ${EXECUTOR_DISK:-0}
     executor_uri: ${EXECUTOR_URI}
+    host_path: ${EXECUTOR_HOST_PATH:-"/var/log"}
+    container_path: ${EXECUTOR_CONTAINER_PATH:-"logs"}
+    volume_name: ${EXECUTOR_VOLUME_NAME:-"kafka_test"}
+    volume_driver: ${EXECUTOR_VOLUME_DRIVER:-"rexray"}
+    dvdcli: ${EXECUTOR_DVDCLI:-"file:///opt/mesosphere/bin/dvdcli"}
+    host_filter: ${EXECUTOR_HOST_FILTER:-["SDS","POD1"]}
 
   broker:
     cpus: ${BROKER_CPUS:-1.0}

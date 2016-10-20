@@ -43,7 +43,13 @@ public class ConfigTestUtils {
                 1,
                 256,
                 0,
-                KafkaTestUtils.testExecutorUri
+                KafkaTestUtils.testExecutorUri,
+                KafkaTestUtils.testHostPath,
+                KafkaTestUtils.testContainerPath,
+                KafkaTestUtils.testVolumeName,
+                KafkaTestUtils.testVolumeDriver,
+                KafkaTestUtils.testDvdcli,
+                KafkaTestUtils.testHostFilter
         );
     }
 
