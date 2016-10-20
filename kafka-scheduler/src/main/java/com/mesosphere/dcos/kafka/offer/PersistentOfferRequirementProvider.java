@@ -109,7 +109,7 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         ExecutorInfo.Builder updatedExecutor = ExecutorInfo.newBuilder(taskInfo.getExecutor());
         updatedExecutor = updateExecutorCmd(updatedExecutor, config, configName);
         updatedExecutor.setExecutorId(ExecutorID.newBuilder().setValue("").build()); // Set later by ExecutorRequirement
-        updatedExecutor.setContainer(getNewContainer(VOLUME_PATH_PREFIX));
+        updatedExecutor.setContainer(getNewContainer("/var/logs"));
 
         try {
             ExecutorInfo updateExecutorInfo = updatedExecutor.build();
@@ -292,11 +292,11 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         String principal = config.getServiceConfiguration().getPrincipal();
 
         String containerPath = VOLUME_PATH_PREFIX + UUID.randomUUID();
-
+        log.info("Creating new task....");
         TaskInfo.Builder taskBuilder = TaskInfo.newBuilder()
                 .setName(brokerName)
                 .setTaskId(TaskID.newBuilder().setValue("").build()) // Set later by TaskRequirement
-                .setContainer(getNewContainer(VOLUME_PATH_PREFIX))
+                .setContainer(getNewContainer("/var/logs"))
                 .setSlaveId(SlaveID.newBuilder().setValue("").build()) // Set later
                 .addResources(ResourceUtils.getDesiredScalar(
                         role,
@@ -308,7 +308,7 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
                         principal,
                         "mem",
                         config.getBrokerConfiguration().getMem()));
-
+        log.info("New task Container !: " + taskBuilder.getContainer().toString());
         Long port = brokerConfiguration.getPort();
         if (port == 0) {
             taskBuilder.addResources(DynamicPortRequirement.getDesiredDynamicPort(
@@ -445,7 +445,7 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         ExecutorInfo.Builder builder = ExecutorInfo.newBuilder()
                 .setName(brokerName)
                 .setExecutorId(ExecutorID.newBuilder().setValue("").build()) // Set later by ExecutorRequirement
-                .setContainer(getNewContainer(VOLUME_PATH_PREFIX))
+                .setContainer(getNewContainer("/var/logs"))
                 .setFrameworkId(schedulerState.getStateStore().fetchFrameworkId().get())
                 .setCommand(getNewExecutorCmd(config, configName, brokerId))
                 .addResources(ResourceUtils.getDesiredScalar(role, principal, "cpus", executorConfiguration.getCpus()))
@@ -456,11 +456,12 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         return builder.build();
     }
 
-    private ContainerInfo getNewContainer(String containerPath){
+    private ContainerInfo getNewContainer(String hostPath){
+        log.info("Creating new container....");
         return org.apache.mesos.Protos.ContainerInfo.newBuilder()
                 .addVolumes(org.apache.mesos.Protos.Volume.newBuilder()
                 .setContainerPath("logs")
-                .setHostPath(containerPath)
+                .setHostPath(hostPath)
                 .setMode(Volume.Mode.RW)
                 .build())
                 .setType(ContainerInfo.Type.MESOS)
