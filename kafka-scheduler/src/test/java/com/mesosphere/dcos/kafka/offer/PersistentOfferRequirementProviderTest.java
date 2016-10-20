@@ -113,7 +113,7 @@ public class PersistentOfferRequirementProviderTest {
     Assert.assertEquals("", diskResource.getDisk().getPersistence().getId());
     Assert.assertTrue(diskResource.getDisk().hasVolume());
     Assert.assertEquals(Volume.Mode.RW, diskResource.getDisk().getVolume().getMode());
-    Assert.assertTrue(diskResource.getDisk().getVolume().getContainerPath().contains("kafka-volume"));
+    Assert.assertTrue(diskResource.getDisk().getVolume().getContainerPath().contains("logs"));
     Assert.assertEquals(KafkaTestUtils.testPrincipal, diskResource.getReservation().getPrincipal());
     Assert.assertEquals("resource_id", diskResource.getReservation().getLabels().getLabelsList().get(0).getKey());
     Assert.assertEquals("", diskResource.getReservation().getLabels().getLabelsList().get(0).getValue());
@@ -161,7 +161,7 @@ public class PersistentOfferRequirementProviderTest {
 
       final String envVarValue = envFromTask.get(expectedEnvKey);
       if ("KAFKA_OVERRIDE_LOG_DIRS".equals(expectedEnvKey)) {
-        Assert.assertTrue(envVarValue.contains("kafka-volume"));
+        Assert.assertTrue(envVarValue.contains("logs"));
         Assert.assertTrue(envVarValue.contains(KafkaTestUtils.testTaskName));
       } else {
         Assert.assertTrue("Cannot find env value: " + envVarValue, expectedEnvMap.containsValue(envVarValue));
