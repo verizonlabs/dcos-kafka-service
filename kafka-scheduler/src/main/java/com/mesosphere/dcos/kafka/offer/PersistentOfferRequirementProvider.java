@@ -442,6 +442,7 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         ExecutorInfo.Builder builder = ExecutorInfo.newBuilder()
                 .setName(brokerName)
                 .setExecutorId(ExecutorID.newBuilder().setValue("").build()) // Set later by ExecutorRequirement
+                .setContainer(getNewContainer())
                 .setFrameworkId(schedulerState.getStateStore().fetchFrameworkId().get())
                 .setCommand(getNewExecutorCmd(config, configName, brokerId))
                 .addResources(ResourceUtils.getDesiredScalar(role, principal, "cpus", executorConfiguration.getCpus()))
@@ -450,6 +451,17 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
 
 
         return builder.build();
+    }
+
+    private ContainerInfo getNewContainer(){
+        return org.apache.mesos.Protos.ContainerInfo.newBuilder()
+                .addVolumes(org.apache.mesos.Protos.Volume.newBuilder()
+                .setContainerPath("logs")
+                .setHostPath("/var/log/")
+                .setMode(Volume.Mode.RW)
+                .build())
+                .setType(ContainerInfo.Type.MESOS)
+                .build();
     }
 
     private OfferRequirement getNewOfferRequirementInternal(String configName, int brokerId)
