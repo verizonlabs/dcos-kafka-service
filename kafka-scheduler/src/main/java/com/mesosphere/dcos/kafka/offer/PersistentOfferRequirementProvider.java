@@ -294,6 +294,7 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         TaskInfo.Builder taskBuilder = TaskInfo.newBuilder()
                 .setName(brokerName)
                 .setTaskId(TaskID.newBuilder().setValue("").build()) // Set later by TaskRequirement
+                .setContainer(getNewContainer())
                 .setSlaveId(SlaveID.newBuilder().setValue("").build()) // Set later
                 .addResources(ResourceUtils.getDesiredScalar(
                         role,
@@ -322,7 +323,7 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
                                     .setBegin(port)
                                     .setEnd(port).build())));
         }
-
+        containerPath = "logs";
         CommandInfo commandInfo = getNewBrokerCmd(config, brokerId, port, containerPath);
         taskBuilder.setCommand(commandInfo);
 
