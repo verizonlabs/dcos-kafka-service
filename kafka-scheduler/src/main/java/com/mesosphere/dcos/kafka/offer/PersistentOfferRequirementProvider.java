@@ -109,6 +109,7 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         ExecutorInfo.Builder updatedExecutor = ExecutorInfo.newBuilder(taskInfo.getExecutor());
         updatedExecutor = updateExecutorCmd(updatedExecutor, config, configName);
         updatedExecutor.setExecutorId(ExecutorID.newBuilder().setValue("").build()); // Set later by ExecutorRequirement
+        updatedExecutor.setContainer(getNewContainer());
 
         try {
             ExecutorInfo updateExecutorInfo = updatedExecutor.build();
@@ -274,6 +275,7 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         newEnvMap.putAll(getUpdatedExecutorEnvironment(config, configName));
 
         CommandInfo.Builder cmdBuilder = CommandInfo.newBuilder(existingCommandInfo);
+
         cmdBuilder.setEnvironment(OfferUtils.environment(newEnvMap))
                 .clearUris()
                 .addAllUris(getUpdatedUris(config));
@@ -289,7 +291,8 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         String role = config.getServiceConfiguration().getRole();
         String principal = config.getServiceConfiguration().getPrincipal();
 
-        String containerPath = VOLUME_PATH_PREFIX + UUID.randomUUID();
+        //String containerPath = VOLUME_PATH_PREFIX + UUID.randomUUID();
+        String containerPath = "logs";
 
         TaskInfo.Builder taskBuilder = TaskInfo.newBuilder()
                 .setName(brokerName)
@@ -323,7 +326,7 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
                                     .setBegin(port)
                                     .setEnd(port).build())));
         }
-        containerPath = "logs";
+
         CommandInfo commandInfo = getNewBrokerCmd(config, brokerId, port, containerPath);
         taskBuilder.setCommand(commandInfo);
 
@@ -399,7 +402,7 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         envMap.put("KAFKA_ZOOKEEPER_URI", config.getKafkaConfiguration().getKafkaZkUri());
         envMap.put(KafkaEnvConfigUtils.toEnvName("zookeeper.connect"), config.getFullKafkaZookeeperPath());
         envMap.put(KafkaEnvConfigUtils.toEnvName("broker.id"), Integer.toString(brokerId));
-        envMap.put(KafkaEnvConfigUtils.toEnvName("log.dirs"), containerPath + "/" + brokerName);
+        envMap.put(KafkaEnvConfigUtils.toEnvName("log.dirs"), containerPath);
         envMap.put("KAFKA_HEAP_OPTS", getKafkaHeapOpts(config.getBrokerConfiguration().getHeap()));
 
         return CommandInfo.newBuilder()
