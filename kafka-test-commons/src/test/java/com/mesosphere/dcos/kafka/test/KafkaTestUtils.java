@@ -13,6 +13,7 @@ public class KafkaTestUtils {
     public static final String testPrincipal = "test-principal";
     public static final String testResourceId = "test-resource-id";
     public static final String testTaskName = "broker-0";
+    public static final String testHostPath = "/var/log/";
     public static final Protos.TaskID testTaskId = TaskUtils.toTaskId(testTaskName);
     public static final String testSlaveId = "test-slave-id";
     public static final String testConfigName = UUID.randomUUID().toString();

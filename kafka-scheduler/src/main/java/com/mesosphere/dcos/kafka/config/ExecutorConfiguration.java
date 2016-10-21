@@ -14,6 +14,8 @@ public class ExecutorConfiguration {
     private double disk;
     @JsonProperty("executor_uri")
     private String executorUri;
+    @JsonProperty("host_path")
+    private String hostPath;
 
     public ExecutorConfiguration() {
 
@@ -24,11 +26,13 @@ public class ExecutorConfiguration {
             @JsonProperty("cpus")double cpus,
             @JsonProperty("mem")double mem,
             @JsonProperty("disk")double disk,
-            @JsonProperty("executor_uri")String executorUri) {
+            @JsonProperty("executor_uri")String executorUri,
+            @JsonProperty("host_path") String hostPath) {
         this.cpus = cpus;
         this.mem = mem;
         this.disk = disk;
         this.executorUri = executorUri;
+        this.hostPath = hostPath;
     }
 
     public double getCpus() {
@@ -42,6 +46,15 @@ public class ExecutorConfiguration {
 
     public double getMem() {
         return mem;
+    }
+
+    public String getHostPath(){
+        return hostPath;
+    }
+
+    @JsonProperty("host_path")
+    public void setHostPath(String hostPath){
+        this.hostPath = hostPath;
     }
 
     @JsonProperty("mem")
@@ -80,12 +93,13 @@ public class ExecutorConfiguration {
         return Double.compare(that.cpus, cpus) == 0 &&
                 Double.compare(that.mem, mem) == 0 &&
                 Double.compare(that.disk, disk) == 0 &&
-                Objects.equals(executorUri, that.executorUri);
+                Objects.equals(executorUri, that.executorUri) &&
+                Objects.equals(hostPath, that.hostPath);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(cpus, mem, disk, executorUri);
+        return Objects.hash(cpus, mem, disk, executorUri, hostPath);
     }
 
     @Override
