@@ -291,7 +291,7 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         String principal = config.getServiceConfiguration().getPrincipal();
 
         String containerPath = VOLUME_PATH_PREFIX + UUID.randomUUID();
-        log.info("Creating new task....");
+
         TaskInfo.Builder taskBuilder = TaskInfo.newBuilder()
                 .setName(brokerName)
                 .setTaskId(TaskID.newBuilder().setValue("").build()) // Set later by TaskRequirement
@@ -306,7 +306,7 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
                         principal,
                         "mem",
                         config.getBrokerConfiguration().getMem()));
-        log.info("New task Container !: " + taskBuilder.getContainer().toString());
+
         Long port = brokerConfiguration.getPort();
         if (port == 0) {
             taskBuilder.addResources(DynamicPortRequirement.getDesiredDynamicPort(
@@ -399,7 +399,9 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         envMap.put("KAFKA_ZOOKEEPER_URI", config.getKafkaConfiguration().getKafkaZkUri());
         envMap.put(KafkaEnvConfigUtils.toEnvName("zookeeper.connect"), config.getFullKafkaZookeeperPath());
         envMap.put(KafkaEnvConfigUtils.toEnvName("broker.id"), Integer.toString(brokerId));
-        envMap.put(KafkaEnvConfigUtils.toEnvName("log.dirs"), containerPath + "/" + brokerName);
+        envMap.put(KafkaEnvConfigUtils.toEnvName("log.dirs"), config.getExecutorConfiguration().getContainerPath() +
+                "/" + containerPath +
+                "/" + brokerName);
         envMap.put("KAFKA_HEAP_OPTS", getKafkaHeapOpts(config.getBrokerConfiguration().getHeap()));
 
         return CommandInfo.newBuilder()
