@@ -440,12 +440,12 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         String role = config.getServiceConfiguration().getRole();
         String principal = config.getServiceConfiguration().getPrincipal();
         String hostPath = executorConfiguration.getHostPath();
-        log.info("HOST PATH FOUND: " + hostPath);
+        String containerPath = executorConfiguration.getContainerPath();
 
         ExecutorInfo.Builder builder = ExecutorInfo.newBuilder()
                 .setName(brokerName)
                 .setExecutorId(ExecutorID.newBuilder().setValue("").build()) // Set later by ExecutorRequirement
-                .setContainer(getNewContainer(hostPath))
+                .setContainer(getNewContainer(hostPath, containerPath))
                 .setFrameworkId(schedulerState.getStateStore().fetchFrameworkId().get())
                 .setCommand(getNewExecutorCmd(config, configName, brokerId))
                 .addResources(ResourceUtils.getDesiredScalar(role, principal, "cpus", executorConfiguration.getCpus()))
@@ -456,11 +456,10 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         return builder.build();
     }
 
-    private ContainerInfo getNewContainer(String hostPath){
-        log.info("Creating new container....");
+    private ContainerInfo getNewContainer(String hostPath, String containerPath){
         return org.apache.mesos.Protos.ContainerInfo.newBuilder()
                 .addVolumes(org.apache.mesos.Protos.Volume.newBuilder()
-                .setContainerPath("logs")
+                .setContainerPath(containerPath)
                 .setHostPath(hostPath)
                 .setMode(Volume.Mode.RW)
                 .build())

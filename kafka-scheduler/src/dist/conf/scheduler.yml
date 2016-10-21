@@ -27,6 +27,7 @@ scheduler_configuration:
     disk: ${EXECUTOR_DISK:-0}
     executor_uri: ${EXECUTOR_URI}
     host_path: ${EXECUTOR_HOST_PATH-"/var/log"}
+    container_path: ${EXECUTOR_CONTAINER_PATH-"logs"}
 
   broker:
     cpus: ${BROKER_CPUS}

@@ -44,7 +44,8 @@ public class ConfigTestUtils {
                 256,
                 0,
                 KafkaTestUtils.testExecutorUri,
-                KafkaTestUtils.testHostPath
+                KafkaTestUtils.testHostPath,
+                KafkaTestUtils.testContainerPath
         );
     }
 

@@ -16,6 +16,8 @@ public class ExecutorConfiguration {
     private String executorUri;
     @JsonProperty("host_path")
     private String hostPath;
+    @JsonProperty("container_path")
+    private String containerPath;
 
     public ExecutorConfiguration() {
 
@@ -27,12 +29,14 @@ public class ExecutorConfiguration {
             @JsonProperty("mem")double mem,
             @JsonProperty("disk")double disk,
             @JsonProperty("executor_uri")String executorUri,
-            @JsonProperty("host_path") String hostPath) {
+            @JsonProperty("host_path") String hostPath,
+            @JsonProperty("container_path") String containerPath) {
         this.cpus = cpus;
         this.mem = mem;
         this.disk = disk;
         this.executorUri = executorUri;
         this.hostPath = hostPath;
+        this.containerPath = containerPath;
     }
 
     public double getCpus() {
@@ -81,6 +85,15 @@ public class ExecutorConfiguration {
         this.executorUri = executorUri;
     }
 
+    @JsonProperty("container_path")
+    public void setContainerPath(String containerPath){
+        this.containerPath = containerPath;
+    }
+
+    public String getContainerPath(){
+        return containerPath;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -94,12 +107,13 @@ public class ExecutorConfiguration {
                 Double.compare(that.mem, mem) == 0 &&
                 Double.compare(that.disk, disk) == 0 &&
                 Objects.equals(executorUri, that.executorUri) &&
-                Objects.equals(hostPath, that.hostPath);
+                Objects.equals(hostPath, that.hostPath) &&
+                Objects.equals(containerPath, that.containerPath);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(cpus, mem, disk, executorUri, hostPath);
+        return Objects.hash(cpus, mem, disk, executorUri, hostPath, containerPath);
     }
 
     @Override
@@ -109,6 +123,8 @@ public class ExecutorConfiguration {
                 ", mem=" + mem +
                 ", disk=" + disk +
                 ", executorUri='" + executorUri + '\'' +
+                ", hostPath=" + hostPath +
+                ", containerPath=" + containerPath +
                 '}';
     }
 }
