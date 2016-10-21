@@ -440,6 +440,7 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         String role = config.getServiceConfiguration().getRole();
         String principal = config.getServiceConfiguration().getPrincipal();
         String hostPath = executorConfiguration.getHostPath();
+        log.info("HOST PATH FOUND: " + hostPath);
 
         ExecutorInfo.Builder builder = ExecutorInfo.newBuilder()
                 .setName(brokerName)
