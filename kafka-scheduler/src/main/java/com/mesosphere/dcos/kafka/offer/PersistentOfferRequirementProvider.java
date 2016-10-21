@@ -109,7 +109,6 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         ExecutorInfo.Builder updatedExecutor = ExecutorInfo.newBuilder(taskInfo.getExecutor());
         updatedExecutor = updateExecutorCmd(updatedExecutor, config, configName);
         updatedExecutor.setExecutorId(ExecutorID.newBuilder().setValue("").build()); // Set later by ExecutorRequirement
-        updatedExecutor.setContainer(getNewContainer("/var/log"));
 
         try {
             ExecutorInfo updateExecutorInfo = updatedExecutor.build();
@@ -440,11 +439,12 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         String brokerName = OfferUtils.brokerIdToTaskName(brokerId);
         String role = config.getServiceConfiguration().getRole();
         String principal = config.getServiceConfiguration().getPrincipal();
+        String hostPath = executorConfiguration.getHostPath();
 
         ExecutorInfo.Builder builder = ExecutorInfo.newBuilder()
                 .setName(brokerName)
                 .setExecutorId(ExecutorID.newBuilder().setValue("").build()) // Set later by ExecutorRequirement
-                .setContainer(getNewContainer("/var/log"))
+                .setContainer(getNewContainer(hostPath))
                 .setFrameworkId(schedulerState.getStateStore().fetchFrameworkId().get())
                 .setCommand(getNewExecutorCmd(config, configName, brokerId))
                 .addResources(ResourceUtils.getDesiredScalar(role, principal, "cpus", executorConfiguration.getCpus()))
