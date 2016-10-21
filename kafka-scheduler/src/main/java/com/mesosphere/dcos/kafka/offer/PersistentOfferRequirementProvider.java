@@ -274,6 +274,7 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         newEnvMap.putAll(getUpdatedExecutorEnvironment(config, configName));
 
         CommandInfo.Builder cmdBuilder = CommandInfo.newBuilder(existingCommandInfo);
+
         cmdBuilder.setEnvironment(OfferUtils.environment(newEnvMap))
                 .clearUris()
                 .addAllUris(getUpdatedUris(config));
@@ -398,7 +399,9 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         envMap.put("KAFKA_ZOOKEEPER_URI", config.getKafkaConfiguration().getKafkaZkUri());
         envMap.put(KafkaEnvConfigUtils.toEnvName("zookeeper.connect"), config.getFullKafkaZookeeperPath());
         envMap.put(KafkaEnvConfigUtils.toEnvName("broker.id"), Integer.toString(brokerId));
-        envMap.put(KafkaEnvConfigUtils.toEnvName("log.dirs"), containerPath + "/" + brokerName);
+        envMap.put(KafkaEnvConfigUtils.toEnvName("log.dirs"), config.getExecutorConfiguration().getContainerPath() +
+                "/" + containerPath +
+                "/" + brokerName);
         envMap.put("KAFKA_HEAP_OPTS", getKafkaHeapOpts(config.getBrokerConfiguration().getHeap()));
 
         return CommandInfo.newBuilder()
@@ -438,10 +441,13 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         String brokerName = OfferUtils.brokerIdToTaskName(brokerId);
         String role = config.getServiceConfiguration().getRole();
         String principal = config.getServiceConfiguration().getPrincipal();
+        String hostPath = executorConfiguration.getHostPath();
+        String containerPath = executorConfiguration.getContainerPath();
 
         ExecutorInfo.Builder builder = ExecutorInfo.newBuilder()
                 .setName(brokerName)
                 .setExecutorId(ExecutorID.newBuilder().setValue("").build()) // Set later by ExecutorRequirement
+                .setContainer(getNewContainer(hostPath, containerPath))
                 .setFrameworkId(schedulerState.getStateStore().fetchFrameworkId().get())
                 .setCommand(getNewExecutorCmd(config, configName, brokerId))
                 .addResources(ResourceUtils.getDesiredScalar(role, principal, "cpus", executorConfiguration.getCpus()))
@@ -450,6 +456,17 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
 
 
         return builder.build();
+    }
+
+    private ContainerInfo getNewContainer(String hostPath, String containerPath){
+        return org.apache.mesos.Protos.ContainerInfo.newBuilder()
+                .addVolumes(org.apache.mesos.Protos.Volume.newBuilder()
+                .setContainerPath(containerPath)
+                .setHostPath(hostPath)
+                .setMode(Volume.Mode.RW)
+                .build())
+                .setType(ContainerInfo.Type.MESOS)
+                .build();
     }
 
     private OfferRequirement getNewOfferRequirementInternal(String configName, int brokerId)
