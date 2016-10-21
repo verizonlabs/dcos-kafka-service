@@ -296,7 +296,6 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         TaskInfo.Builder taskBuilder = TaskInfo.newBuilder()
                 .setName(brokerName)
                 .setTaskId(TaskID.newBuilder().setValue("").build()) // Set later by TaskRequirement
-                .setContainer(getNewContainer("/var/logs"))
                 .setSlaveId(SlaveID.newBuilder().setValue("").build()) // Set later
                 .addResources(ResourceUtils.getDesiredScalar(
                         role,
