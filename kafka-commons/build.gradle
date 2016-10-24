@@ -1,5 +1,5 @@
 ext {
-    mesosVer = "0.28.0"
+    mesosVer = "1.0.0"
 }
 
 dependencies {
