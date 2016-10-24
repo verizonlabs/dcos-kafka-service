@@ -18,6 +18,10 @@ public class ExecutorConfiguration {
     private String hostPath;
     @JsonProperty("container_path")
     private String containerPath;
+    @JsonProperty("network_mode")
+    private String networkMode;
+    @JsonProperty("cni_network")
+    private String cniNetwork;
 
     public ExecutorConfiguration() {
 
@@ -30,13 +34,17 @@ public class ExecutorConfiguration {
             @JsonProperty("disk")double disk,
             @JsonProperty("executor_uri")String executorUri,
             @JsonProperty("host_path") String hostPath,
-            @JsonProperty("container_path") String containerPath) {
+            @JsonProperty("container_path") String containerPath,
+            @JsonProperty("network_mode")String networkMode,
+            @JsonProperty("cni_network")String cniNetwork) {
         this.cpus = cpus;
         this.mem = mem;
         this.disk = disk;
         this.executorUri = executorUri;
         this.hostPath = hostPath;
         this.containerPath = containerPath;
+        this.networkMode = networkMode;
+        this.cniNetwork = cniNetwork;
     }
 
     public double getCpus() {
@@ -80,6 +88,14 @@ public class ExecutorConfiguration {
         return executorUri;
     }
 
+    public String getNetworkMode() {
+        return networkMode;
+    }
+
+    public String getCniNetwork() {
+        return cniNetwork;
+    }
+
     @JsonProperty("executor_uri")
     public void setExecutorUri(String executorUri) {
         this.executorUri = executorUri;
@@ -108,12 +124,14 @@ public class ExecutorConfiguration {
                 Double.compare(that.disk, disk) == 0 &&
                 Objects.equals(executorUri, that.executorUri) &&
                 Objects.equals(hostPath, that.hostPath) &&
-                Objects.equals(containerPath, that.containerPath);
+                Objects.equals(containerPath, that.containerPath) &&
+                Objects.equals(networkMode, that.networkMode) &&
+                Objects.equals(cniNetwork, that.cniNetwork);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(cpus, mem, disk, executorUri, hostPath, containerPath);
+        return Objects.hash(cpus, mem, disk, executorUri, hostPath, containerPath, networkMode, cniNetwork);
     }
 
     @Override
@@ -125,6 +143,8 @@ public class ExecutorConfiguration {
                 ", executorUri='" + executorUri + '\'' +
                 ", hostPath=" + hostPath +
                 ", containerPath=" + containerPath +
+                ", networkMode='" + networkMode + '\'' +
+                ", cniNetwork='" + cniNetwork + '\'' +
                 '}';
     }
 }

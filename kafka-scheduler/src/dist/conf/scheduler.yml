@@ -28,6 +28,8 @@ scheduler_configuration:
     executor_uri: ${EXECUTOR_URI}
     host_path: ${EXECUTOR_HOST_PATH:-"/var/log"}
     container_path: ${EXECUTOR_CONTAINER_PATH:-"logs"}
+    network_mode: ${EXECUTOR_NETWORK_MODE:-"host"}
+    cni_network: ${EXECUTOR_CNI_NETWORK:-"dcos"}
 
   broker:
     cpus: ${BROKER_CPUS}
