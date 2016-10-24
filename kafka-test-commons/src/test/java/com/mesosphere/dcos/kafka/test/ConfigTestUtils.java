@@ -44,6 +44,7 @@ public class ConfigTestUtils {
                 256,
                 0,
                 KafkaTestUtils.testExecutorUri,
+                "./executor/bin/kafka-executor server ./executor/conf/executor.yml",
                 "host",
                 "dcos"
         );
