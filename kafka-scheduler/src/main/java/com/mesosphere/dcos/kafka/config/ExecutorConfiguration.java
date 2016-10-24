@@ -14,6 +14,10 @@ public class ExecutorConfiguration {
     private double disk;
     @JsonProperty("executor_uri")
     private String executorUri;
+    @JsonProperty("network_mode")
+    private String networkMode;
+    @JsonProperty("cni_network")
+    private String cniNetwork;
 
     public ExecutorConfiguration() {
 
@@ -24,11 +28,15 @@ public class ExecutorConfiguration {
             @JsonProperty("cpus")double cpus,
             @JsonProperty("mem")double mem,
             @JsonProperty("disk")double disk,
-            @JsonProperty("executor_uri")String executorUri) {
+            @JsonProperty("executor_uri")String executorUri,
+            @JsonProperty("network_mode")String networkMode,
+            @JsonProperty("cni_network")String cniNetwork) {
         this.cpus = cpus;
         this.mem = mem;
         this.disk = disk;
         this.executorUri = executorUri;
+        this.networkMode = networkMode;
+        this.cniNetwork = cniNetwork;
     }
 
     public double getCpus() {
@@ -63,6 +71,14 @@ public class ExecutorConfiguration {
         return executorUri;
     }
 
+    public String getNetworkMode() {
+        return networkMode;
+    }
+
+    public String getCniNetwork() {
+        return cniNetwork;
+    }
+
     @JsonProperty("executor_uri")
     public void setExecutorUri(String executorUri) {
         this.executorUri = executorUri;
@@ -80,12 +96,14 @@ public class ExecutorConfiguration {
         return Double.compare(that.cpus, cpus) == 0 &&
                 Double.compare(that.mem, mem) == 0 &&
                 Double.compare(that.disk, disk) == 0 &&
-                Objects.equals(executorUri, that.executorUri);
+                Objects.equals(executorUri, that.executorUri) &&
+                Objects.equals(networkMode, that.networkMode) &&
+                Objects.equals(cniNetwork, that.cniNetwork);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(cpus, mem, disk, executorUri);
+        return Objects.hash(cpus, mem, disk, executorUri, networkMode, cniNetwork);
     }
 
     @Override
@@ -95,6 +113,8 @@ public class ExecutorConfiguration {
                 ", mem=" + mem +
                 ", disk=" + disk +
                 ", executorUri='" + executorUri + '\'' +
+                ", networkMode='" + networkMode + '\'' +
+                ", cniNetwork='" + cniNetwork + '\'' +
                 '}';
     }
 }
