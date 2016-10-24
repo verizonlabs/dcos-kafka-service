@@ -45,7 +45,9 @@ public class ConfigTestUtils {
                 0,
                 KafkaTestUtils.testExecutorUri,
                 KafkaTestUtils.testHostPath,
-                KafkaTestUtils.testContainerPath
+                KafkaTestUtils.testContainerPath,
+                "host",
+                "dcos"
         );
     }
 
