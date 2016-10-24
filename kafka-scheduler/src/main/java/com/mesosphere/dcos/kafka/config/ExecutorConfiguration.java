@@ -18,6 +18,8 @@ public class ExecutorConfiguration {
     private String hostPath;
     @JsonProperty("container_path")
     private String containerPath;
+    @JsonProperty("command")
+    private String command;
     @JsonProperty("network_mode")
     private String networkMode;
     @JsonProperty("cni_network")
@@ -35,6 +37,7 @@ public class ExecutorConfiguration {
             @JsonProperty("executor_uri")String executorUri,
             @JsonProperty("host_path") String hostPath,
             @JsonProperty("container_path") String containerPath,
+            @JsonProperty("command")String command,
             @JsonProperty("network_mode")String networkMode,
             @JsonProperty("cni_network")String cniNetwork) {
         this.cpus = cpus;
@@ -43,6 +46,7 @@ public class ExecutorConfiguration {
         this.executorUri = executorUri;
         this.hostPath = hostPath;
         this.containerPath = containerPath;
+        this.command = command;
         this.networkMode = networkMode;
         this.cniNetwork = cniNetwork;
     }
@@ -88,6 +92,10 @@ public class ExecutorConfiguration {
         return executorUri;
     }
 
+    public String getCommand() {
+        return command;
+    }
+
     public String getNetworkMode() {
         return networkMode;
     }
@@ -125,13 +133,14 @@ public class ExecutorConfiguration {
                 Objects.equals(executorUri, that.executorUri) &&
                 Objects.equals(hostPath, that.hostPath) &&
                 Objects.equals(containerPath, that.containerPath) &&
+                Objects.equals(command, that.command) &&
                 Objects.equals(networkMode, that.networkMode) &&
                 Objects.equals(cniNetwork, that.cniNetwork);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(cpus, mem, disk, executorUri, hostPath, containerPath, networkMode, cniNetwork);
+        return Objects.hash(cpus, mem, disk, executorUri, command, hostPath, containerPath, networkMode, cniNetwork);
     }
 
     @Override
@@ -143,6 +152,7 @@ public class ExecutorConfiguration {
                 ", executorUri='" + executorUri + '\'' +
                 ", hostPath=" + hostPath +
                 ", containerPath=" + containerPath +
+                ", command='" + command + '\'' +
                 ", networkMode='" + networkMode + '\'' +
                 ", cniNetwork='" + cniNetwork + '\'' +
                 '}';

@@ -421,7 +421,6 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         ExecutorConfiguration executorConfiguration = config.getExecutorConfiguration();
         String frameworkName = config.getServiceConfiguration().getName();
 
-        final String executorCommand = "./executor/bin/kafka-executor server ./executor/conf/executor.yml";
         Map<String, String> executorEnvMap = new HashMap<>();
         executorEnvMap.put(JAVA_HOME_KEY, JAVA_HOME_VALUE);
         executorEnvMap.put("FRAMEWORK_NAME", frameworkName);
@@ -429,7 +428,7 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         executorEnvMap.put(KafkaEnvConfigUtils.KAFKA_OVERRIDE_PREFIX + "BROKER_ID", Integer.toString(brokerId));
         executorEnvMap.put(CONFIG_ID_KEY, configName);
         return CommandInfo.newBuilder()
-                .setValue(executorCommand)
+                .setValue(executorConfiguration.getCommand())
                 .setEnvironment(OfferUtils.environment(executorEnvMap))
                 .addUris(uri(brokerConfiguration.getJavaUri()))
                 .addUris(uri(brokerConfiguration.getKafkaUri()))
