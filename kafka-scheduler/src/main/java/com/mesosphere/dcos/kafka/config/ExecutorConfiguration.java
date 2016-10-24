@@ -14,6 +14,8 @@ public class ExecutorConfiguration {
     private double disk;
     @JsonProperty("executor_uri")
     private String executorUri;
+    @JsonProperty("command")
+    private String command;
     @JsonProperty("network_mode")
     private String networkMode;
     @JsonProperty("cni_network")
@@ -29,12 +31,14 @@ public class ExecutorConfiguration {
             @JsonProperty("mem")double mem,
             @JsonProperty("disk")double disk,
             @JsonProperty("executor_uri")String executorUri,
+            @JsonProperty("command")String command,
             @JsonProperty("network_mode")String networkMode,
             @JsonProperty("cni_network")String cniNetwork) {
         this.cpus = cpus;
         this.mem = mem;
         this.disk = disk;
         this.executorUri = executorUri;
+        this.command = command;
         this.networkMode = networkMode;
         this.cniNetwork = cniNetwork;
     }
@@ -71,6 +75,10 @@ public class ExecutorConfiguration {
         return executorUri;
     }
 
+    public String getCommand() {
+        return command;
+    }
+
     public String getNetworkMode() {
         return networkMode;
     }
@@ -97,13 +105,14 @@ public class ExecutorConfiguration {
                 Double.compare(that.mem, mem) == 0 &&
                 Double.compare(that.disk, disk) == 0 &&
                 Objects.equals(executorUri, that.executorUri) &&
+                Objects.equals(command, that.command) &&
                 Objects.equals(networkMode, that.networkMode) &&
                 Objects.equals(cniNetwork, that.cniNetwork);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(cpus, mem, disk, executorUri, networkMode, cniNetwork);
+        return Objects.hash(cpus, mem, disk, executorUri, command, networkMode, cniNetwork);
     }
 
     @Override
@@ -113,6 +122,7 @@ public class ExecutorConfiguration {
                 ", mem=" + mem +
                 ", disk=" + disk +
                 ", executorUri='" + executorUri + '\'' +
+                ", command='" + command + '\'' +
                 ", networkMode='" + networkMode + '\'' +
                 ", cniNetwork='" + cniNetwork + '\'' +
                 '}';
