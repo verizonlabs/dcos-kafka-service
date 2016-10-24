@@ -9,7 +9,6 @@ import com.mesosphere.dcos.kafka.state.ClusterState;
 import com.mesosphere.dcos.kafka.state.FrameworkState;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.*;
 import org.apache.mesos.Protos.Value.Range;
 import org.apache.mesos.Protos.Value.Ranges;
