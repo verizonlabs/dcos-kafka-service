@@ -92,6 +92,7 @@ public class ExecutorConfiguration {
         return executorUri;
     }
 
+    @JsonProperty("command")
     public String getCommand() {
         return command;
     }
