@@ -79,10 +79,12 @@ public class ExecutorConfiguration {
         return command;
     }
 
+    @JsonProperty("network_mode")
     public String getNetworkMode() {
         return networkMode;
     }
 
+    @JsonProperty("cni_network")
     public String getCniNetwork() {
         return cniNetwork;
     }
