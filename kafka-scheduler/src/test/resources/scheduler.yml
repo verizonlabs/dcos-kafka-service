@@ -26,6 +26,9 @@ scheduler_configuration:
     mem: ${EXECUTOR_MEM:-256}
     disk: ${EXECUTOR_DISK:-0}
     executor_uri: ${EXECUTOR_URI}
+    command: ${EXECUTOR_COMMAND:-"./executor/bin/kafka-executor server ./executor/conf/executor.yml"}
+    network_mode: ${EXECUTOR_NETWORK_MODE:-"host"}
+    cni_network: ${EXECUTOR_CNI_NETWORK:-"dcos"}
 
   broker:
     cpus: ${BROKER_CPUS:-1.0}
