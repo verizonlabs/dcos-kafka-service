@@ -15,6 +15,9 @@ public class KafkaTestUtils {
     public static final String testTaskName = "broker-0";
     public static final String testHostPath = "/var/log/";
     public static final String testContainerPath = "logs";
+    public static final String testCommand = "./executor/bin/kafka-executor server ./executor/conf/executor.yml";
+    public static final String testNetworkMode = "host";
+    public static final String testCniNetwork = "dcos";
     public static final Protos.TaskID testTaskId = TaskUtils.toTaskId(testTaskName);
     public static final String testSlaveId = "test-slave-id";
     public static final String testConfigName = UUID.randomUUID().toString();
