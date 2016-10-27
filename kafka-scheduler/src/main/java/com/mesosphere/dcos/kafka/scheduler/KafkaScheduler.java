@@ -22,6 +22,7 @@ import com.mesosphere.dcos.kafka.web.TopicController;
 import io.dropwizard.setup.Environment;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.*;
 import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
@@ -326,6 +327,19 @@ public class KafkaScheduler implements Scheduler, Runnable {
         }
     }
 
+    private List<Offer> filterOfferByHostName(List<Offer> offers, List<String> filters){
+        List<Protos.Offer> filteredOffers = new ArrayList<>();
+
+        for (String filter_term : filters) {
+            for (Protos.Offer offer : offers){
+                if (filter_term.trim().equals(offer.getHostname().trim())){
+                    filteredOffers.add(offer);
+                }
+            }
+        }
+        return filteredOffers;
+    }
+
     @Override
     public void resourceOffers(SchedulerDriver driver, List<Offer> offers) {
         try {
@@ -333,6 +347,14 @@ public class KafkaScheduler implements Scheduler, Runnable {
             reconciler.reconcile(driver);
 
             List<OfferID> acceptedOffers = new ArrayList<>();
+            List<String> hostIpFilter = kafkaSchedulerConfiguration.getServiceConfiguration().getHostListFilter();
+            List<Offer> filteredOffers = new ArrayList<>();
+
+            if (hostIpFilter.isEmpty()){
+                filteredOffers = offers;
+            } else {
+                filteredOffers = filterOfferByHostName(offers, hostIpFilter);
+            }
 
             if (!reconciler.isReconciled()) {
                 log.info("Accepting no offers: Reconciler is still in progress");
@@ -340,7 +362,7 @@ public class KafkaScheduler implements Scheduler, Runnable {
                 Optional<Block> blockOptional = planManager.getCurrentBlock();
                 if (blockOptional.isPresent()) {
                     Block block = blockOptional.get();
-                    acceptedOffers = planScheduler.resourceOffers(driver, offers, block);
+                    acceptedOffers = planScheduler.resourceOffers(driver, filteredOffers, block);
                 }
 
                 List<Offer> unacceptedOffers = filterAcceptedOffers(offers, acceptedOffers);

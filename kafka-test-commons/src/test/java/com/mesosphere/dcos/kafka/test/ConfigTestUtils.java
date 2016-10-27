@@ -12,7 +12,8 @@ public class ConfigTestUtils {
                 KafkaTestUtils.testPlacementStrategy,
                 KafkaTestUtils.testPhaseStrategy,
                 KafkaTestUtils.testRole,
-                KafkaTestUtils.testPrincipal);
+                KafkaTestUtils.testPrincipal,
+                KafkaTestUtils.testHostFilter);
     }
 
     public static BrokerConfiguration getTestBrokerConfiguration() {

@@ -60,7 +60,8 @@ public class ConfigStateValidatorTest {
                 KafkaTestUtils.testPlacementStrategy,
                 KafkaTestUtils.testPhaseStrategy,
                 KafkaTestUtils.testRole,
-                KafkaTestUtils.testPrincipal);
+                KafkaTestUtils.testPrincipal,
+                KafkaTestUtils.testHostFilter);
 
         ConfigStateValidator configStateValidator = new ConfigStateValidator(frameworkState);
         Collection<ConfigStateValidator.ValidationError> errors = configStateValidator.validateServiceConfigChange(oldServiceConfiguration, newServiceConfiguration);

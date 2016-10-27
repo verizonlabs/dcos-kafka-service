@@ -3,6 +3,8 @@ package com.mesosphere.dcos.kafka.test;
 import org.apache.mesos.Protos;
 import org.apache.mesos.offer.TaskUtils;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -15,6 +17,7 @@ public class KafkaTestUtils {
     public static final String testTaskName = "broker-0";
     public static final String testHostPath = "/var/log/";
     public static final String testContainerPath = "logs";
+    public static final List<String> testHostFilter = new ArrayList<>();
     public static final Protos.TaskID testTaskId = TaskUtils.toTaskId(testTaskName);
     public static final String testSlaveId = "test-slave-id";
     public static final String testConfigName = UUID.randomUUID().toString();

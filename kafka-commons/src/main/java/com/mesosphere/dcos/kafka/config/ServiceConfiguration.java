@@ -3,6 +3,7 @@ package com.mesosphere.dcos.kafka.config;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.List;
 import java.util.Objects;
 
 public class ServiceConfiguration {
@@ -20,6 +21,8 @@ public class ServiceConfiguration {
     private String role;
     @JsonProperty("principal")
     private String principal;
+    @JsonProperty("host_list_filter")
+    private List<String> hostListFilter;
 
     public ServiceConfiguration() {
 
@@ -33,7 +36,8 @@ public class ServiceConfiguration {
             @JsonProperty("placement_strategy")String placementStrategy,
             @JsonProperty("phase_strategy")String phaseStrategy,
             @JsonProperty("role")String role,
-            @JsonProperty("principal")String principal) {
+            @JsonProperty("principal")String principal,
+            @JsonProperty("host_list_filter")List<String> hostListFilter) {
         this.count = count;
         this.name = name;
         this.user = user;
@@ -41,6 +45,7 @@ public class ServiceConfiguration {
         this.phaseStrategy = phaseStrategy;
         this.role = role;
         this.principal = principal;
+        this.hostListFilter = hostListFilter;
     }
 
     public int getCount() {
@@ -106,6 +111,11 @@ public class ServiceConfiguration {
         this.principal = principal;
     }
 
+    @JsonProperty("host_list_filter")
+    public void setHostListFilter(List<String> hostListFilter) { this.hostListFilter = hostListFilter; }
+
+    public List<String> getHostListFilter(){ return this.hostListFilter; }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -123,12 +133,13 @@ public class ServiceConfiguration {
                 Objects.equals(placementStrategy, that.placementStrategy) &&
                 Objects.equals(phaseStrategy, that.phaseStrategy) &&
                 Objects.equals(role, that.role) &&
-                Objects.equals(principal, that.principal);
+                Objects.equals(principal, that.principal) &&
+                Objects.equals(hostListFilter, that.hostListFilter);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(count, name, user, placementStrategy, phaseStrategy, role, principal);
+        return Objects.hash(count, name, user, placementStrategy, phaseStrategy, role, principal, hostListFilter);
     }
 
     @Override
@@ -141,6 +152,7 @@ public class ServiceConfiguration {
                 ", phaseStrategy='" + phaseStrategy + '\'' +
                 ", role='" + role + '\'' +
                 ", principal='" + principal + '\'' +
+                ", hostListFilter=" + hostListFilter +
                 '}';
     }
 }

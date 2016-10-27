@@ -7,6 +7,7 @@ scheduler_configuration:
     role: "kafka-role"
     principal: "kafka-principal"
     count: 3
+    host_list_filter: ${HOST_LIST_FILTER:-[]}
 
   recovery:
     min_delay_between_recoveries_secs: ${REPLACE_DELAY_SEC:-600}

@@ -7,6 +7,7 @@ scheduler_configuration:
     role: "${FRAMEWORK_NAME}-role"
     principal: "${FRAMEWORK_NAME}-principal"
     count: ${BROKER_COUNT:-3}
+    host_list_filter: ${HOST_LIST_FILTER:-[]}
 
   broker:
     cpus: ${BROKER_CPUS:-1}
