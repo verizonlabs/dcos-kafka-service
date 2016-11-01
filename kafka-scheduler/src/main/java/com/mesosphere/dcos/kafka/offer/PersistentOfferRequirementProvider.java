@@ -13,10 +13,9 @@ import org.apache.mesos.Protos.*;
 import org.apache.mesos.Protos.Value.Range;
 import org.apache.mesos.Protos.Value.Ranges;
 import org.apache.mesos.config.ConfigStoreException;
-import org.apache.mesos.dcos.Capabilities;
-import org.apache.mesos.dcos.DcosCluster;
 import org.apache.mesos.offer.*;
 import org.apache.mesos.offer.constrain.PlacementRuleGenerator;
+
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -24,8 +23,6 @@ import java.util.*;
 
 public class PersistentOfferRequirementProvider implements KafkaOfferRequirementProvider {
     private final Log log = LogFactory.getLog(PersistentOfferRequirementProvider.class);
-
-    private static final String CNI_NETWORK = "CNI";
 
     public static final String CONFIG_ID_KEY = "CONFIG_ID";
     public static final String CONFIG_TARGET_KEY = "target_configuration";
@@ -242,6 +239,7 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         ExecutorConfiguration executorConfiguration = config.getExecutorConfiguration();
 
         List<CommandInfo.URI> uris = new ArrayList<>();
+        uris.add(uri(executorConfiguration.getDvdcli()));
         uris.add(uri(brokerConfiguration.getJavaUri()));
         uris.add(uri(brokerConfiguration.getKafkaUri()));
         uris.add(uri(brokerConfiguration.getOverriderUri()));
@@ -416,10 +414,25 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
 
     private CommandInfo getNewExecutorCmd(KafkaSchedulerConfiguration config, String configName, int brokerId)
             throws ConfigStoreException {
+
+        String brokerName = OfferUtils.brokerIdToTaskName(brokerId);
         BrokerConfiguration brokerConfiguration = config.getBrokerConfiguration();
         ZookeeperConfiguration zookeeperConfiguration = config.getZookeeperConfig();
         ExecutorConfiguration executorConfiguration = config.getExecutorConfiguration();
         String frameworkName = config.getServiceConfiguration().getName();
+
+        // Get rexray option here.
+        StringBuilder stringBuilder = new StringBuilder();
+        if (executorConfiguration.getVolumeDriver().equalsIgnoreCase("rexray")) {
+            stringBuilder.append("./dvdcli mount --volumename=");
+            stringBuilder.append(brokerName.replace("broker-", executorConfiguration.getVolumeName() + "_"));
+            stringBuilder.append(" --volumedriver=");
+            stringBuilder.append(executorConfiguration.getVolumeDriver().trim());
+            stringBuilder.append(" && ");
+        }
+
+        stringBuilder.append("./executor/bin/kafka-executor server ./executor/conf/executor.yml");
+        final String executorCommand = stringBuilder.toString();
 
         Map<String, String> executorEnvMap = new HashMap<>();
         executorEnvMap.put(JAVA_HOME_KEY, JAVA_HOME_VALUE);
@@ -428,8 +441,9 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         executorEnvMap.put(KafkaEnvConfigUtils.KAFKA_OVERRIDE_PREFIX + "BROKER_ID", Integer.toString(brokerId));
         executorEnvMap.put(CONFIG_ID_KEY, configName);
         return CommandInfo.newBuilder()
-                .setValue(executorConfiguration.getCommand())
+                .setValue(executorCommand)
                 .setEnvironment(OfferUtils.environment(executorEnvMap))
+                .addUris(uri(executorConfiguration.getDvdcli()))
                 .addUris(uri(brokerConfiguration.getJavaUri()))
                 .addUris(uri(brokerConfiguration.getKafkaUri()))
                 .addUris(uri(brokerConfiguration.getOverriderUri()))
@@ -450,39 +464,25 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         ExecutorInfo.Builder builder = ExecutorInfo.newBuilder()
                 .setName(brokerName)
                 .setExecutorId(ExecutorID.newBuilder().setValue("").build()) // Set later by ExecutorRequirement
-                .setContainer(getNewContainerInfo(hostPath, containerPath, executorConfiguration))
+                .setContainer(getNewContainer(hostPath, containerPath))
                 .setFrameworkId(schedulerState.getStateStore().fetchFrameworkId().get())
                 .setCommand(getNewExecutorCmd(config, configName, brokerId))
                 .addResources(ResourceUtils.getDesiredScalar(role, principal, "cpus", executorConfiguration.getCpus()))
                 .addResources(ResourceUtils.getDesiredScalar(role, principal, "mem", executorConfiguration.getMem()))
                 .addResources(DynamicPortRequirement.getDesiredDynamicPort("API_PORT", role, principal));
 
-
         return builder.build();
     }
 
-    private ContainerInfo getNewContainerInfo(String hostPath, String containerPath, ExecutorConfiguration config) {
-        ContainerInfo.Builder containerBuilder = ContainerInfo.newBuilder();
-        Capabilities capabilities = new Capabilities(new DcosCluster());
-
-        try {
-            if (capabilities.supportsNamedVips() && CNI_NETWORK.equalsIgnoreCase(config.getNetworkMode())) {
-                containerBuilder
-                        .addNetworkInfos(NetworkInfo.newBuilder()
-                                .setName(config.getCniNetwork()));
-            }
-        } catch (IOException | URISyntaxException e) {
-            log.error(String.format("Unable to detect named VIP support: %s", e));
-        } finally {
-            containerBuilder.setType(ContainerInfo.Type.MESOS)
-                    .addVolumes(Volume.newBuilder()
-                            .setContainerPath(containerPath)
-                            .setHostPath(hostPath)
-                            .setMode(Volume.Mode.RW)
-                            .build());
-        }
-
-        return containerBuilder.build();
+    private ContainerInfo getNewContainer(String hostPath, String containerPath){
+        return org.apache.mesos.Protos.ContainerInfo.newBuilder()
+                .addVolumes(org.apache.mesos.Protos.Volume.newBuilder()
+                .setContainerPath(containerPath)
+                .setHostPath(hostPath)
+                .setMode(Volume.Mode.RW)
+                .build())
+                .setType(ContainerInfo.Type.MESOS)
+                .build();
     }
 
     private OfferRequirement getNewOfferRequirementInternal(String configName, int brokerId)

@@ -133,11 +133,11 @@ public class PersistentOfferRequirementProviderTest {
     final ExecutorInfo executorInfo = req.getExecutorRequirementOptional().get().getExecutorInfo();
 
     CommandInfo cmd = executorInfo.getCommand();
-    Assert.assertEquals(4, cmd.getUrisList().size());
-    Assert.assertEquals(KafkaTestUtils.testJavaUri, cmd.getUrisList().get(0).getValue());
-    Assert.assertEquals(KafkaTestUtils.testKafkaUri, cmd.getUrisList().get(1).getValue());
-    Assert.assertEquals(KafkaTestUtils.testOverriderUri, cmd.getUrisList().get(2).getValue());
-    Assert.assertEquals(KafkaTestUtils.testExecutorUri, cmd.getUrisList().get(3).getValue());
+    Assert.assertEquals(5, cmd.getUrisList().size());
+    Assert.assertEquals(KafkaTestUtils.testJavaUri, cmd.getUrisList().get(1).getValue());
+    Assert.assertEquals(KafkaTestUtils.testKafkaUri, cmd.getUrisList().get(2).getValue());
+    Assert.assertEquals(KafkaTestUtils.testOverriderUri, cmd.getUrisList().get(3).getValue());
+    Assert.assertEquals(KafkaTestUtils.testExecutorUri, cmd.getUrisList().get(4).getValue());
 
     String portString = String.valueOf(portsResource.getRanges().getRangeList().get(0).getBegin());
 
@@ -169,7 +169,7 @@ public class PersistentOfferRequirementProviderTest {
     }
 
     Assert.assertEquals(286, taskInfo.getCommand().getValue().length());
-    Assert.assertEquals(65, cmd.getValue().length());
+    Assert.assertEquals(131, cmd.getValue().length());
   }
 
   @Test

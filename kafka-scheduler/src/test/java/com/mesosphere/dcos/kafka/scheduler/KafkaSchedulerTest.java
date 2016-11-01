@@ -175,6 +175,7 @@ public class KafkaSchedulerTest {
     }
 
     private KafkaScheduler getTestKafkaScheduler() throws Exception {
+
         return new KafkaScheduler(dropwizardConfiguration.getSchedulerConfiguration(), environment);
     }
 
