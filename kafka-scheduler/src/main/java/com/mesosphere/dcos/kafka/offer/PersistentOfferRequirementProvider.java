@@ -16,7 +16,6 @@ import org.apache.mesos.config.ConfigStoreException;
 import org.apache.mesos.offer.*;
 import org.apache.mesos.offer.constrain.PlacementRuleGenerator;
 
-
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.*;
@@ -463,8 +462,7 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         String driver = executorConfiguration.getVolumeDriver();
         ExecutorInfo.Builder builder = ExecutorInfo.newBuilder();
         if (driver.equalsIgnoreCase("rexray")){
-              builder.setContainer(getNewContainer("/var/lib/rexray/volumes/" +
-                      brokerName.replace("broker-", executorConfiguration.getVolumeName() + "_") + "/data", containerPath));
+              builder.setContainer(getNewDockerContainer(brokerName.replace("broker-", executorConfiguration.getVolumeName() + "_"), driver, containerPath));
         } else {
             builder.setContainer(getNewContainer(hostPath, containerPath));
         }
@@ -481,8 +479,24 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         return builder.build();
     }
 
+    private ContainerInfo getNewDockerContainer(String volume, String driver, String containerPath){
+        return ContainerInfo.newBuilder()
+                .addVolumes(Volume.newBuilder()
+                    .setSource(Volume.Source.newBuilder()
+                    .setDockerVolume(Volume.Source.DockerVolume.newBuilder()
+                            .setDriver(driver)
+                            .setName(volume)
+                            .build())
+                    .build())
+                    .setMode(Volume.Mode.RW)
+                    .setContainerPath(containerPath)
+                    .build()
+                ).setType(ContainerInfo.Type.MESOS)
+                .build();
+    }
+
     private ContainerInfo getNewContainer(String hostPath, String containerPath){
-        return org.apache.mesos.Protos.ContainerInfo.newBuilder()
+        return ContainerInfo.newBuilder()
                 .addVolumes(org.apache.mesos.Protos.Volume.newBuilder()
                 .setContainerPath(containerPath)
                 .setHostPath(hostPath)
