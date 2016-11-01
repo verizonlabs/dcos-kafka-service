@@ -357,12 +357,12 @@ public class KafkaScheduler implements Scheduler, Runnable {
             reconciler.reconcile(driver);
 
             List<OfferID> acceptedOffers = new ArrayList<>();
-            List<Offer> filteredOffers = new ArrayList<>();
+            List<Offer> filteredOffers = offers;
             ArrayList<String> hostFilter = kafkaSchedulerConfiguration.getExecutorConfiguration().getHostFilter();
 
             if (!hostFilter.isEmpty()){
                 for (String filter: hostFilter) {
-                    filteredOffers = filterOffers(offers, filter);
+                    filteredOffers = filterOffers(filteredOffers, filter);
                 }
             }
 
