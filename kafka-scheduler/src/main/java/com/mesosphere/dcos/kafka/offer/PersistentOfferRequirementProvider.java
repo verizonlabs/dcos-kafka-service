@@ -460,11 +460,18 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         String principal = config.getServiceConfiguration().getPrincipal();
         String hostPath = executorConfiguration.getHostPath();
         String containerPath = executorConfiguration.getContainerPath();
+        String driver = executorConfiguration.getVolumeDriver();
+        ExecutorInfo.Builder builder = ExecutorInfo.newBuilder();
+        if (driver.equalsIgnoreCase("rexray")){
+              builder.setContainer(getNewContainer("/var/lib/rexray/volumes/" +
+                      brokerName.replace("broker-", executorConfiguration.getVolumeName() + "_") + "/data", containerPath));
+        } else {
+            builder.setContainer(getNewContainer(hostPath, containerPath));
+        }
 
-        ExecutorInfo.Builder builder = ExecutorInfo.newBuilder()
+       builder
                 .setName(brokerName)
                 .setExecutorId(ExecutorID.newBuilder().setValue("").build()) // Set later by ExecutorRequirement
-                .setContainer(getNewContainer(hostPath, containerPath))
                 .setFrameworkId(schedulerState.getStateStore().fetchFrameworkId().get())
                 .setCommand(getNewExecutorCmd(config, configName, brokerId))
                 .addResources(ResourceUtils.getDesiredScalar(role, principal, "cpus", executorConfiguration.getCpus()))
