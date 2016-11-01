@@ -16,6 +16,9 @@ public class KafkaTestUtils {
     public static final String testTaskName = "broker-0";
     public static final String testHostPath = "/var/log/";
     public static final String testContainerPath = "logs";
+    public static final String testCommand = "./executor/bin/kafka-executor server ./executor/conf/executor.yml";
+    public static final String testNetworkMode = "host";
+    public static final String testCniNetwork = "dcos";
     public static final String testVolumeName = "kafka_test";
     public static final String testVolumeDriver = "rexray";
     public static final String testDvdcli = "file:///opt/mesosphere/bin/dvdcli";

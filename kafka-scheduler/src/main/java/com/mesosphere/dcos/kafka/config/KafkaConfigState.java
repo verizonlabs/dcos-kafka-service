@@ -136,8 +136,8 @@ public class KafkaConfigState {
     try {
       UUID targetName = getTargetName();
       List<String> duplicateConfigs = getDuplicateConfigs();
-      List<TaskInfo> taskInfos = state.getTaskInfos();
 
+      List<TaskInfo> taskInfos = state.getTaskInfos();
       for (TaskInfo taskInfo : taskInfos) {
         replaceDuplicateConfig(state, taskInfo, duplicateConfigs, targetName);
       }
