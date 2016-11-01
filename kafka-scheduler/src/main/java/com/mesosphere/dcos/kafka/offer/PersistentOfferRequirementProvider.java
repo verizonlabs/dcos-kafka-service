@@ -13,6 +13,8 @@ import org.apache.mesos.Protos.*;
 import org.apache.mesos.Protos.Value.Range;
 import org.apache.mesos.Protos.Value.Ranges;
 import org.apache.mesos.config.ConfigStoreException;
+import org.apache.mesos.dcos.Capabilities;
+import org.apache.mesos.dcos.DcosCluster;
 import org.apache.mesos.offer.*;
 import org.apache.mesos.offer.constrain.PlacementRuleGenerator;
 
@@ -22,6 +24,8 @@ import java.util.*;
 
 public class PersistentOfferRequirementProvider implements KafkaOfferRequirementProvider {
     private final Log log = LogFactory.getLog(PersistentOfferRequirementProvider.class);
+
+    private static final String CNI_NETWORK = "CNI";
 
     public static final String CONFIG_ID_KEY = "CONFIG_ID";
     public static final String CONFIG_TARGET_KEY = "target_configuration";
@@ -459,17 +463,11 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         String principal = config.getServiceConfiguration().getPrincipal();
         String hostPath = executorConfiguration.getHostPath();
         String containerPath = executorConfiguration.getContainerPath();
-        String driver = executorConfiguration.getVolumeDriver();
-        ExecutorInfo.Builder builder = ExecutorInfo.newBuilder();
-        if (driver.equalsIgnoreCase("rexray")){
-              builder.setContainer(getNewDockerContainer(brokerName.replace("broker-", executorConfiguration.getVolumeName() + "_"), driver, containerPath));
-        } else {
-            builder.setContainer(getNewContainer(hostPath, containerPath));
-        }
 
-       builder
+        ExecutorInfo.Builder builder = ExecutorInfo.newBuilder()
                 .setName(brokerName)
                 .setExecutorId(ExecutorID.newBuilder().setValue("").build()) // Set later by ExecutorRequirement
+                .setContainer(getNewContainer(hostPath, containerPath, executorConfiguration))
                 .setFrameworkId(schedulerState.getStateStore().fetchFrameworkId().get())
                 .setCommand(getNewExecutorCmd(config, configName, brokerId))
                 .addResources(ResourceUtils.getDesiredScalar(role, principal, "cpus", executorConfiguration.getCpus()))
@@ -479,31 +477,28 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         return builder.build();
     }
 
-    private ContainerInfo getNewDockerContainer(String volume, String driver, String containerPath){
-        return ContainerInfo.newBuilder()
-                .addVolumes(Volume.newBuilder()
-                    .setSource(Volume.Source.newBuilder()
-                    .setDockerVolume(Volume.Source.DockerVolume.newBuilder()
-                            .setDriver(driver)
-                            .setName(volume)
-                            .build())
-                    .build())
-                    .setMode(Volume.Mode.RW)
-                    .setContainerPath(containerPath)
-                    .build()
-                ).setType(ContainerInfo.Type.MESOS)
-                .build();
-    }
+    private ContainerInfo getNewContainer(String hostPath, String containerPath, ExecutorConfiguration config){
+        ContainerInfo.Builder containerBuilder = ContainerInfo.newBuilder();
+        Capabilities capabilities = new Capabilities(new DcosCluster());
 
-    private ContainerInfo getNewContainer(String hostPath, String containerPath){
-        return ContainerInfo.newBuilder()
-                .addVolumes(org.apache.mesos.Protos.Volume.newBuilder()
-                .setContainerPath(containerPath)
-                .setHostPath(hostPath)
-                .setMode(Volume.Mode.RW)
-                .build())
-                .setType(ContainerInfo.Type.MESOS)
-                .build();
+        try {
+            if (capabilities.supportsNamedVips() && CNI_NETWORK.equalsIgnoreCase(config.getNetworkMode())) {
+                containerBuilder
+                        .addNetworkInfos(NetworkInfo.newBuilder()
+                                .setName(config.getCniNetwork()));
+            }
+        } catch (IOException | URISyntaxException e) {
+            log.error(String.format("Unable to detect named VIP support: %s", e));
+        } finally {
+            containerBuilder.setType(ContainerInfo.Type.MESOS)
+                    .addVolumes(Volume.newBuilder()
+                            .setContainerPath(containerPath)
+                            .setHostPath(hostPath)
+                            .setMode(Volume.Mode.RW)
+                            .build());
+        }
+
+        return containerBuilder.build();
     }
 
     private OfferRequirement getNewOfferRequirementInternal(String configName, int brokerId)

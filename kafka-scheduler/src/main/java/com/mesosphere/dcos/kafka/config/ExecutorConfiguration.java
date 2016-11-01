@@ -19,6 +19,12 @@ public class ExecutorConfiguration {
     private String hostPath;
     @JsonProperty("container_path")
     private String containerPath;
+    @JsonProperty("command")
+    private String command;
+    @JsonProperty("network_mode")
+    private String networkMode;
+    @JsonProperty("cni_network")
+    private String cniNetwork;
     @JsonProperty("volume_name")
     private String volumeName;
     @JsonProperty("volume_driver")
@@ -40,6 +46,9 @@ public class ExecutorConfiguration {
             @JsonProperty("executor_uri")String executorUri,
             @JsonProperty("host_path") String hostPath,
             @JsonProperty("container_path") String containerPath,
+            @JsonProperty("command")String command,
+            @JsonProperty("network_mode")String networkMode,
+            @JsonProperty("cni_network")String cniNetwork,
             @JsonProperty("volume_name") String volumeName,
             @JsonProperty("volume_driver") String volumeDriver,
             @JsonProperty("dvdcli") String dvdcli,
@@ -50,6 +59,9 @@ public class ExecutorConfiguration {
         this.executorUri = executorUri;
         this.hostPath = hostPath;
         this.containerPath = containerPath;
+        this.command = command;
+        this.networkMode = networkMode;
+        this.cniNetwork = cniNetwork;
         this.volumeName = volumeName;
         this.volumeDriver = volumeDriver;
         this.dvdcli = dvdcli;
@@ -95,6 +107,21 @@ public class ExecutorConfiguration {
 
     public String getExecutorUri() {
         return executorUri;
+    }
+
+    @JsonProperty("command")
+    public String getCommand() {
+        return command;
+    }
+
+    @JsonProperty("network_mode")
+    public String getNetworkMode() {
+        return networkMode;
+    }
+
+    @JsonProperty("cni_network")
+    public String getCniNetwork() {
+        return cniNetwork;
     }
 
     @JsonProperty("executor_uri")
@@ -146,6 +173,9 @@ public class ExecutorConfiguration {
                 Objects.equals(executorUri, that.executorUri) &&
                 Objects.equals(hostPath, that.hostPath) &&
                 Objects.equals(containerPath, that.containerPath) &&
+                Objects.equals(command, that.command) &&
+                Objects.equals(networkMode, that.networkMode) &&
+                Objects.equals(cniNetwork, that.cniNetwork) &&
                 Objects.equals(volumeDriver, that.volumeDriver) &&
                 Objects.equals(volumeName, that.volumeName) &&
                 Objects.equals(dvdcli, that.dvdcli) &&
@@ -154,7 +184,7 @@ public class ExecutorConfiguration {
 
     @Override
     public int hashCode() {
-        return Objects.hash(cpus, mem, disk, executorUri, hostPath, containerPath, volumeDriver, volumeName, dvdcli, hostFilter);
+        return Objects.hash(cpus, mem, disk, executorUri, hostPath, containerPath, volumeDriver, volumeName, dvdcli, hostFilter, networkMode, cniNetwork);
     }
 
     @Override
@@ -166,6 +196,9 @@ public class ExecutorConfiguration {
                 ", executorUri='" + executorUri + '\'' +
                 ", hostPath=" + hostPath +
                 ", containerPath=" + containerPath +
+                ", command='" + command + '\'' +
+                ", networkMode='" + networkMode + '\'' +
+                ", cniNetwork='" + cniNetwork + '\'' +
                 ", volumeName=" + volumeName +
                 ", volumeDriver=" + volumeDriver +
                 ", dvdcli=" + dvdcli +

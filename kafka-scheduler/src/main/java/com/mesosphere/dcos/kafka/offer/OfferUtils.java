@@ -1,7 +1,5 @@
 package com.mesosphere.dcos.kafka.offer;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Label;
 import org.apache.mesos.Protos.TaskInfo;
@@ -13,7 +11,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class OfferUtils {
-  private static final Log log = LogFactory.getLog(OfferUtils.class);
   public static String getConfigName(TaskInfo taskInfo) {
     for (Label label : taskInfo.getLabels().getLabelsList()) {
       if (label.getKey().equals(PersistentOfferRequirementProvider.CONFIG_TARGET_KEY)) {
