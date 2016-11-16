@@ -429,11 +429,11 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
             stringBuilder.append("dvdcli mount --volumename=");
             stringBuilder.append(brokerName.replace("broker-", executorConfiguration.getVolumeName() + "_"));
             stringBuilder.append(" --volumedriver=");
-            stringBuilder.append(executorConfiguration.getVolumeDriver().trim());
+            stringBuilder.append(executorConfiguration.getVolumeDriver());
             stringBuilder.append(" && ");
         }
 
-        stringBuilder.append(executorConfiguration.getCommand());
+        stringBuilder.append("ifconfig lo up && ./executor/bin/kafka-executor server ./executor/conf/executor.yml");
         final String executorCommand = stringBuilder.toString();
 
         Map<String, String> executorEnvMap = new HashMap<>();
