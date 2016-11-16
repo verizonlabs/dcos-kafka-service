@@ -331,8 +331,7 @@ public class KafkaScheduler implements Scheduler, Runnable {
 
     private List<Protos.Offer> filterOffers(List<Protos.Offer> offers, String filter){
         return offers.stream()
-                .filter(offer -> offer.getAttributesList().stream().anyMatch(attribute -> attribute.getText()
-                        .equals(Protos.Value.Text.newBuilder().setValue(filter).build())))
+                .filter(offer -> offer.getAttributesList().stream().anyMatch(attribute -> attribute.getText().toString().equals(filter)))
                 .collect(Collectors.toList());
 
     }
@@ -342,7 +341,7 @@ public class KafkaScheduler implements Scheduler, Runnable {
 
         for (String filter_term : filters) {
             for (Protos.Offer offer : offers){
-                if (filter_term.trim().equals(offer.getHostname().trim())){
+                if (filter_term.equals(offer.getHostname())){
                     filteredOffers.add(offer);
                 }
             }
