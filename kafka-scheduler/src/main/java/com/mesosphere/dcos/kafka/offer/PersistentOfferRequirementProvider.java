@@ -433,7 +433,7 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
             stringBuilder.append(" && ");
         }
 
-        stringBuilder.append("./executor/bin/kafka-executor server ./executor/conf/executor.yml");
+        stringBuilder.append(executorConfiguration.getCommand());
         final String executorCommand = stringBuilder.toString();
 
         Map<String, String> executorEnvMap = new HashMap<>();
