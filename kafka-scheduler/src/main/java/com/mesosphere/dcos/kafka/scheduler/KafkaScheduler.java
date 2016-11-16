@@ -331,7 +331,8 @@ public class KafkaScheduler implements Scheduler, Runnable {
 
     private List<Protos.Offer> filterOffers(List<Protos.Offer> offers, String filter){
         return offers.stream()
-                .filter(offer -> offer.getAttributesList().stream().anyMatch(attribute -> attribute.getText().toString().equals(filter)))
+                .filter(offer -> offer.getAttributesList().stream().anyMatch(attribute -> attribute.getText()
+                        .equals(Protos.Value.Text.newBuilder().setValue(filter).build())))
                 .collect(Collectors.toList());
 
     }
