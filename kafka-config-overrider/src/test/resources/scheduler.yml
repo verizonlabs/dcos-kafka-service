@@ -18,6 +18,10 @@ scheduler_configuration:
     command: ${EXECUTOR_COMMAND:-"./executor/bin/kafka-executor server ./executor/conf/executor.yml"}
     network_mode: ${EXECUTOR_NETWORK_MODE:-"host"}
     cni_network: ${EXECUTOR_CNI_NETWORK:-"dcos"}
+    volume_name: ${EXECUTOR_VOLUME_NAME:-"kafka_test"}
+    volume_driver: ${EXECUTOR_VOLUME_DRIVER:-"rexray"}
+    dvdcli: ${EXECUTOR_DVDCLI:-"file:///opt/mesosphere/bin/dvdcli"}
+    host_filter: ${EXECUTOR_HOST_FILTER:-["SDS","POD1"]}
 
   broker:
     cpus: ${BROKER_CPUS:-1.0}

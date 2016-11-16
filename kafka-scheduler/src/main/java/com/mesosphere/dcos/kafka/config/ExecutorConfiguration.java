@@ -3,6 +3,7 @@ package com.mesosphere.dcos.kafka.config;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.ArrayList;
 import java.util.Objects;
 
 public class ExecutorConfiguration {
@@ -24,6 +25,14 @@ public class ExecutorConfiguration {
     private String networkMode;
     @JsonProperty("cni_network")
     private String cniNetwork;
+    @JsonProperty("volume_name")
+    private String volumeName;
+    @JsonProperty("volume_driver")
+    private String volumeDriver;
+    @JsonProperty("dvdcli")
+    private String dvdcli;
+    @JsonProperty("host_filter")
+    private ArrayList<String> hostFilter;
 
     public ExecutorConfiguration() {
 
@@ -39,7 +48,11 @@ public class ExecutorConfiguration {
             @JsonProperty("container_path") String containerPath,
             @JsonProperty("command")String command,
             @JsonProperty("network_mode")String networkMode,
-            @JsonProperty("cni_network")String cniNetwork) {
+            @JsonProperty("cni_network")String cniNetwork,
+            @JsonProperty("volume_name") String volumeName,
+            @JsonProperty("volume_driver") String volumeDriver,
+            @JsonProperty("dvdcli") String dvdcli,
+            @JsonProperty("host_filter") ArrayList<String> hostFilter) {
         this.cpus = cpus;
         this.mem = mem;
         this.disk = disk;
@@ -49,6 +62,10 @@ public class ExecutorConfiguration {
         this.command = command;
         this.networkMode = networkMode;
         this.cniNetwork = cniNetwork;
+        this.volumeName = volumeName;
+        this.volumeDriver = volumeDriver;
+        this.dvdcli = dvdcli;
+        this.hostFilter = hostFilter;
     }
 
     public double getCpus() {
@@ -121,6 +138,26 @@ public class ExecutorConfiguration {
         return containerPath;
     }
 
+    @JsonProperty("volume_name")
+    public void setVolumeName(String volumeName) { this.volumeName = volumeName; }
+
+    public String getVolumeName() { return  volumeName; }
+
+    @JsonProperty("volume_driver")
+    public void setVolumeDriver(String volumeDriver) { this.volumeDriver = volumeDriver; }
+
+    public String getVolumeDriver() { return  volumeDriver; }
+
+    @JsonProperty("dvdcli")
+    public void setDvdcli(String dvdcli) { this.dvdcli = dvdcli; }
+
+    public String getDvdcli() { return dvdcli; }
+
+    @JsonProperty("host_filter")
+    public void setHostFilter(ArrayList<String> hostFilter) { this.hostFilter = hostFilter; }
+
+    public ArrayList<String> getHostFilter(){ return hostFilter; }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -138,12 +175,16 @@ public class ExecutorConfiguration {
                 Objects.equals(containerPath, that.containerPath) &&
                 Objects.equals(command, that.command) &&
                 Objects.equals(networkMode, that.networkMode) &&
-                Objects.equals(cniNetwork, that.cniNetwork);
+                Objects.equals(cniNetwork, that.cniNetwork) &&
+                Objects.equals(volumeDriver, that.volumeDriver) &&
+                Objects.equals(volumeName, that.volumeName) &&
+                Objects.equals(dvdcli, that.dvdcli) &&
+                Objects.equals(hostFilter, that.hostFilter);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(cpus, mem, disk, executorUri, command, hostPath, containerPath, networkMode, cniNetwork);
+        return Objects.hash(cpus, mem, disk, executorUri, hostPath, containerPath, volumeDriver, volumeName, dvdcli, hostFilter, networkMode, cniNetwork);
     }
 
     @Override
@@ -158,6 +199,10 @@ public class ExecutorConfiguration {
                 ", command='" + command + '\'' +
                 ", networkMode='" + networkMode + '\'' +
                 ", cniNetwork='" + cniNetwork + '\'' +
+                ", volumeName=" + volumeName +
+                ", volumeDriver=" + volumeDriver +
+                ", dvdcli=" + dvdcli +
+                ", hostFilter=" + hostFilter.toString() +
                 '}';
     }
 }

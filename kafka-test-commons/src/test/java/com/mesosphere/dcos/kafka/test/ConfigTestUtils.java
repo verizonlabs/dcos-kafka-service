@@ -48,7 +48,11 @@ public class ConfigTestUtils {
                 KafkaTestUtils.testContainerPath,
                 KafkaTestUtils.testCommand,
                 KafkaTestUtils.testNetworkMode,
-                KafkaTestUtils.testCniNetwork
+                KafkaTestUtils.testCniNetwork,
+                KafkaTestUtils.testVolumeName,
+                KafkaTestUtils.testVolumeDriver,
+                KafkaTestUtils.testDvdcli,
+                KafkaTestUtils.testHostFilter
         );
     }
 
