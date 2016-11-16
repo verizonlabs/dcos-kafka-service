@@ -502,7 +502,7 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
                                                 .build())
                                         .setType(Volume.Source.Type.DOCKER_VOLUME).build())
                                 .setMode(Volume.Mode.RW)
-                                .setContainerPath(KafkaEnvConfigUtils.getKafkaConfig(logdir).get("log.dirs")).build());
+                                .setContainerPath(volumeName));
             } else {
                 containerBuilder.setType(ContainerInfo.Type.MESOS)
                         .addVolumes(Volume.newBuilder()
