@@ -243,7 +243,7 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         ExecutorConfiguration executorConfiguration = config.getExecutorConfiguration();
 
         List<CommandInfo.URI> uris = new ArrayList<>();
-        uris.add(uri(executorConfiguration.getDvdcli(), true));
+        uris.add(uri(executorConfiguration.getDvdcli()));
         uris.add(uri(brokerConfiguration.getJavaUri()));
         uris.add(uri(brokerConfiguration.getKafkaUri()));
         uris.add(uri(brokerConfiguration.getOverriderUri()));
@@ -405,7 +405,9 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         envMap.put("KAFKA_ZOOKEEPER_URI", config.getKafkaConfiguration().getKafkaZkUri());
         envMap.put(KafkaEnvConfigUtils.toEnvName("zookeeper.connect"), config.getFullKafkaZookeeperPath());
         envMap.put(KafkaEnvConfigUtils.toEnvName("broker.id"), Integer.toString(brokerId));
-        envMap.put(KafkaEnvConfigUtils.toEnvName("log.dirs"), containerPath + "/" + brokerName);
+        envMap.put(KafkaEnvConfigUtils.toEnvName("log.dirs"), config.getExecutorConfiguration().getContainerPath() +
+                "/" + containerPath +
+                "/" + brokerName);
         envMap.put("KAFKA_HEAP_OPTS", getKafkaHeapOpts(config.getBrokerConfiguration().getHeap()));
 
         return CommandInfo.newBuilder()
@@ -426,7 +428,7 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         // Get rexray option here.
         StringBuilder stringBuilder = new StringBuilder();
         if (executorConfiguration.getVolumeDriver().equalsIgnoreCase("rexray")) {
-            stringBuilder.append("dvdcli mount --volumename=");
+            stringBuilder.append("./dvdcli mount --volumename=");
             stringBuilder.append(brokerName.replace("broker-", executorConfiguration.getVolumeName() + "_"));
             stringBuilder.append(" --volumedriver=");
             stringBuilder.append(executorConfiguration.getVolumeDriver());
@@ -507,7 +509,7 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
                                             .build())
                                     .setType(Protos.Volume.Source.Type.DOCKER_VOLUME).build())
                             .setMode(Protos.Volume.Mode.RW)
-                            .setContainerPath(KafkaEnvConfigUtils.getKafkaConfig(logdir).get("log.dirs")));
+                            .setContainerPath(KafkaEnvConfigUtils.getKafkaConfig(logdir).get("log.dirs")).build());
         }
 
         return containerBuilder.build();
