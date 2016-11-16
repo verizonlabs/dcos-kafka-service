@@ -9,7 +9,6 @@ import com.mesosphere.dcos.kafka.state.ClusterState;
 import com.mesosphere.dcos.kafka.state.FrameworkState;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.*;
 import org.apache.mesos.Protos.Value.Range;
 import org.apache.mesos.Protos.Value.Ranges;
@@ -32,6 +31,7 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
     public static final String CONFIG_TARGET_KEY = "target_configuration";
     public static final String BROKER_TASK_TYPE = "broker";
     public static final String VOLUME_PATH_PREFIX = "kafka-volume-";
+    public static final String VOLUME_PATH = "volume";
     public static final String JAVA_HOME_KEY = "JAVA_HOME";
     public static final String JAVA_HOME_VALUE = "jre1.8.0_91";
 
@@ -296,7 +296,7 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         String role = config.getServiceConfiguration().getRole();
         String principal = config.getServiceConfiguration().getPrincipal();
 
-        String containerPath = VOLUME_PATH_PREFIX + UUID.randomUUID();
+        String containerPath = VOLUME_PATH;
 
         TaskInfo.Builder taskBuilder = TaskInfo.newBuilder()
                 .setName(brokerName)
@@ -405,9 +405,7 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         envMap.put("KAFKA_ZOOKEEPER_URI", config.getKafkaConfiguration().getKafkaZkUri());
         envMap.put(KafkaEnvConfigUtils.toEnvName("zookeeper.connect"), config.getFullKafkaZookeeperPath());
         envMap.put(KafkaEnvConfigUtils.toEnvName("broker.id"), Integer.toString(brokerId));
-        envMap.put(KafkaEnvConfigUtils.toEnvName("log.dirs"), config.getExecutorConfiguration().getContainerPath() +
-                "/" + containerPath +
-                "/" + brokerName);
+        envMap.put(KafkaEnvConfigUtils.toEnvName("log.dirs"), containerPath + "/" + brokerName);
         envMap.put("KAFKA_HEAP_OPTS", getKafkaHeapOpts(config.getBrokerConfiguration().getHeap()));
 
         return CommandInfo.newBuilder()
@@ -431,11 +429,11 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
             stringBuilder.append("./dvdcli mount --volumename=");
             stringBuilder.append(brokerName.replace("broker-", executorConfiguration.getVolumeName() + "_"));
             stringBuilder.append(" --volumedriver=");
-            stringBuilder.append(executorConfiguration.getVolumeDriver());
+            stringBuilder.append(executorConfiguration.getVolumeDriver().trim());
             stringBuilder.append(" && ");
         }
 
-        stringBuilder.append("ifconfig lo up && ./executor/bin/kafka-executor server ./executor/conf/executor.yml");
+        stringBuilder.append("./executor/bin/kafka-executor server ./executor/conf/executor.yml");
         final String executorCommand = stringBuilder.toString();
 
         Map<String, String> executorEnvMap = new HashMap<>();
@@ -466,56 +464,20 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         String hostPath = executorConfiguration.getHostPath();
         String containerPath = executorConfiguration.getContainerPath();
 
-        ExecutorInfo.Builder builder = ExecutorInfo.newBuilder();
-        if (executorConfiguration.getVolumeDriver().equalsIgnoreCase("rexray")){
-            builder.setContainer(getNewContainer(executorConfiguration, volumeName));
-        } else if (!executorConfiguration.getHostPath().isEmpty() && !executorConfiguration.getContainerPath().isEmpty()){
-            builder.setContainer(getNewContainer(hostPath, containerPath, executorConfiguration));
-        }
-        builder
-            .setName(brokerName)
-            .setExecutorId(ExecutorID.newBuilder().setValue("").build()) // Set later by ExecutorRequirement
-            .setFrameworkId(schedulerState.getStateStore().fetchFrameworkId().get())
-            .setCommand(getNewExecutorCmd(config, configName, brokerId))
-            .addResources(ResourceUtils.getDesiredScalar(role, principal, "cpus", executorConfiguration.getCpus()))
-            .addResources(ResourceUtils.getDesiredScalar(role, principal, "mem", executorConfiguration.getMem()))
-            .addResources(DynamicPortRequirement.getDesiredDynamicPort("API_PORT", role, principal));
+        ExecutorInfo.Builder builder = ExecutorInfo.newBuilder()
+                .setName(brokerName)
+                .setExecutorId(ExecutorID.newBuilder().setValue("").build()) // Set later by ExecutorRequirement
+                .setContainer(getNewContainer(hostPath, containerPath, executorConfiguration, volumeName))
+                .setFrameworkId(schedulerState.getStateStore().fetchFrameworkId().get())
+                .setCommand(getNewExecutorCmd(config, configName, brokerId))
+                .addResources(ResourceUtils.getDesiredScalar(role, principal, "cpus", executorConfiguration.getCpus()))
+                .addResources(ResourceUtils.getDesiredScalar(role, principal, "mem", executorConfiguration.getMem()))
+                .addResources(DynamicPortRequirement.getDesiredDynamicPort("API_PORT", role, principal));
 
         return builder.build();
     }
 
-    private ContainerInfo getNewContainer(ExecutorConfiguration config, String volumeName) {
-        ContainerInfo.Builder containerBuilder = ContainerInfo.newBuilder();
-        Capabilities capabilities = new Capabilities(new DcosCluster());
-        Map<String, String> logdir = new HashMap<>();
-        logdir.put("KAFKA_OVERRIDE_LOG_DIRS", "");
-
-        try {
-            if (capabilities.supportsNamedVips() && CNI_NETWORK.equalsIgnoreCase(config.getNetworkMode())) {
-                containerBuilder
-                        .addNetworkInfos(NetworkInfo.newBuilder()
-                                .setName(config.getCniNetwork()));
-            }
-        } catch (IOException | URISyntaxException e) {
-            log.error(String.format("Unable to detect named VIP support: %s", e));
-        } finally {
-            containerBuilder
-                    .setType(Protos.ContainerInfo.Type.MESOS)
-                    .addVolumes(Protos.Volume.newBuilder().setSource(
-                            Protos.Volume.Source.newBuilder()
-                                    .setDockerVolume(Protos.Volume.Source.DockerVolume.newBuilder()
-                                            .setDriver("rexray")
-                                            .setName(volumeName)
-                                            .build())
-                                    .setType(Protos.Volume.Source.Type.DOCKER_VOLUME).build())
-                            .setMode(Protos.Volume.Mode.RW)
-                            .setContainerPath(KafkaEnvConfigUtils.getKafkaConfig(logdir).get("log.dirs")).build());
-        }
-
-        return containerBuilder.build();
-    }
-
-    private ContainerInfo getNewContainer(String hostPath, String containerPath, ExecutorConfiguration config){
+    private ContainerInfo getNewContainer(String hostPath, String containerPath, ExecutorConfiguration config, String volumeName){
         ContainerInfo.Builder containerBuilder = ContainerInfo.newBuilder();
         Capabilities capabilities = new Capabilities(new DcosCluster());
 
@@ -528,12 +490,26 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         } catch (IOException | URISyntaxException e) {
             log.error(String.format("Unable to detect named VIP support: %s", e));
         } finally {
+            if (config.getVolumeDriver().equalsIgnoreCase("rexray")){
+                containerBuilder
+                        .setType(ContainerInfo.Type.MESOS)
+                        .addVolumes(Volume.newBuilder().setSource(
+                                Volume.Source.newBuilder()
+                                        .setDockerVolume(Volume.Source.DockerVolume.newBuilder()
+                                                .setDriver("rexray")
+                                                .setName(volumeName)
+                                                .build())
+                                        .setType(Volume.Source.Type.DOCKER_VOLUME).build())
+                                .setMode(Volume.Mode.RW)
+                                .setContainerPath(VOLUME_PATH));
+            } else {
                 containerBuilder.setType(ContainerInfo.Type.MESOS)
                         .addVolumes(Volume.newBuilder()
                                 .setContainerPath(containerPath)
                                 .setHostPath(hostPath)
                                 .setMode(Volume.Mode.RW)
                                 .build());
+            }
         }
 
         return containerBuilder.build();
@@ -594,9 +570,5 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
 
     private CommandInfo.URI uri(String uri) {
         return CommandInfo.URI.newBuilder().setValue(uri).build();
-    }
-
-    private CommandInfo.URI uri(String uri, Boolean execute) {
-        return CommandInfo.URI.newBuilder().setValue(uri).setExecutable(execute).setExtract(!execute).build();
     }
 }
