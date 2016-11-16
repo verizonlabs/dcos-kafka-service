@@ -31,6 +31,7 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
     public static final String CONFIG_TARGET_KEY = "target_configuration";
     public static final String BROKER_TASK_TYPE = "broker";
     public static final String VOLUME_PATH_PREFIX = "kafka-volume-";
+    public static final String VOLUME_PATH = "volume";
     public static final String JAVA_HOME_KEY = "JAVA_HOME";
     public static final String JAVA_HOME_VALUE = "jre1.8.0_91";
 
@@ -295,7 +296,7 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         String role = config.getServiceConfiguration().getRole();
         String principal = config.getServiceConfiguration().getPrincipal();
 
-        String containerPath = VOLUME_PATH_PREFIX + UUID.randomUUID();
+        String containerPath = VOLUME_PATH;
 
         TaskInfo.Builder taskBuilder = TaskInfo.newBuilder()
                 .setName(brokerName)
@@ -479,8 +480,6 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
     private ContainerInfo getNewContainer(String hostPath, String containerPath, ExecutorConfiguration config, String volumeName){
         ContainerInfo.Builder containerBuilder = ContainerInfo.newBuilder();
         Capabilities capabilities = new Capabilities(new DcosCluster());
-        Map<String, String> logdir = new HashMap<>();
-        logdir.put("KAFKA_OVERRIDE_LOG_DIRS", "");
 
         try {
             if (capabilities.supportsNamedVips() && CNI_NETWORK.equalsIgnoreCase(config.getNetworkMode())) {
@@ -502,7 +501,7 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
                                                 .build())
                                         .setType(Volume.Source.Type.DOCKER_VOLUME).build())
                                 .setMode(Volume.Mode.RW)
-                                .setContainerPath(volumeName));
+                                .setContainerPath(VOLUME_PATH));
             } else {
                 containerBuilder.setType(ContainerInfo.Type.MESOS)
                         .addVolumes(Volume.newBuilder()
