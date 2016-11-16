@@ -243,7 +243,7 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         ExecutorConfiguration executorConfiguration = config.getExecutorConfiguration();
 
         List<CommandInfo.URI> uris = new ArrayList<>();
-        uris.add(uri(executorConfiguration.getDvdcli()));
+        uris.add(uri(executorConfiguration.getDvdcli(), true));
         uris.add(uri(brokerConfiguration.getJavaUri()));
         uris.add(uri(brokerConfiguration.getKafkaUri()));
         uris.add(uri(brokerConfiguration.getOverriderUri()));
@@ -592,5 +592,9 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
 
     private CommandInfo.URI uri(String uri) {
         return CommandInfo.URI.newBuilder().setValue(uri).build();
+    }
+
+    private CommandInfo.URI uri(String uri, Boolean execute) {
+        return CommandInfo.URI.newBuilder().setValue(uri).setExecutable(execute).setExtract(!execute).build();
     }
 }
