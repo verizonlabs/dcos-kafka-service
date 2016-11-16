@@ -426,7 +426,7 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         // Get rexray option here.
         StringBuilder stringBuilder = new StringBuilder();
         if (executorConfiguration.getVolumeDriver().equalsIgnoreCase("rexray")) {
-            stringBuilder.append("./dvdcli mount --volumename=");
+            stringBuilder.append("dvdcli mount --volumename=");
             stringBuilder.append(brokerName.replace("broker-", executorConfiguration.getVolumeName() + "_"));
             stringBuilder.append(" --volumedriver=");
             stringBuilder.append(executorConfiguration.getVolumeDriver().trim());
