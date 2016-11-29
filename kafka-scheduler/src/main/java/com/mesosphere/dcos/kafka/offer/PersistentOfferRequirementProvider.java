@@ -26,7 +26,7 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
     private final Log log = LogFactory.getLog(PersistentOfferRequirementProvider.class);
 
     private static final String CNI_NETWORK = "CNI";
-
+    private static final String STORAGE_DRIVER = "rexray";
     public static final String CONFIG_ID_KEY = "CONFIG_ID";
     public static final String CONFIG_TARGET_KEY = "target_configuration";
     public static final String BROKER_TASK_TYPE = "broker";
@@ -490,13 +490,13 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         } catch (IOException | URISyntaxException e) {
             log.error(String.format("Unable to detect named VIP support: %s", e));
         } finally {
-            if (config.getVolumeDriver().equalsIgnoreCase("rexray")){
+            if (config.getVolumeDriver().equalsIgnoreCase(STORAGE_DRIVER)){
                 containerBuilder
                         .setType(ContainerInfo.Type.MESOS)
                         .addVolumes(Volume.newBuilder().setSource(
                                 Volume.Source.newBuilder()
                                         .setDockerVolume(Volume.Source.DockerVolume.newBuilder()
-                                                .setDriver("rexray")
+                                                .setDriver(STORAGE_DRIVER)
                                                 .setName(volumeName)
                                                 .build())
                                         .setType(Volume.Source.Type.DOCKER_VOLUME).build())
