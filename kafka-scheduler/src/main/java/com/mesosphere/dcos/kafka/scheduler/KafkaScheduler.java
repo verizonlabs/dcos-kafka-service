@@ -364,7 +364,7 @@ public class KafkaScheduler implements Scheduler, Runnable {
                     acceptedOffers = planScheduler.resourceOffers(driver, filteredOffers, block);
                 }
 
-                List<Offer> unacceptedOffers = filterAcceptedOffers(offers, acceptedOffers);
+                List<Offer> unacceptedOffers = filterAcceptedOffers(filteredOffers, acceptedOffers);
                 try {
                     acceptedOffers.addAll(repairScheduler.resourceOffers(driver, unacceptedOffers, blockOptional));
                 } catch (InvalidRequirementException e) {
