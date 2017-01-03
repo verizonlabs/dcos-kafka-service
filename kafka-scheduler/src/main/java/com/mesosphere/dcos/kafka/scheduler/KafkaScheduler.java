@@ -332,11 +332,12 @@ public class KafkaScheduler implements Scheduler, Runnable {
 
         for (String filter_term : filters) {
             for (Protos.Offer offer : offers){
-                if (filter_term.trim().equals(offer.getHostname().trim())){
+                if (filter_term.equals(offer.getHostname())){
                     filteredOffers.add(offer);
                 }
             }
         }
+        log.debug("List of filtered hosts...: " + filteredOffers.toString());
         return filteredOffers;
     }
 
@@ -348,11 +349,9 @@ public class KafkaScheduler implements Scheduler, Runnable {
 
             List<OfferID> acceptedOffers = new ArrayList<>();
             List<String> hostIpFilter = kafkaSchedulerConfiguration.getServiceConfiguration().getHostListFilter();
-            List<Offer> filteredOffers = new ArrayList<>();
+            List<Offer> filteredOffers = offers;
 
-            if (hostIpFilter.isEmpty()){
-                filteredOffers = offers;
-            } else {
+            if (!hostIpFilter.isEmpty()){
                 filteredOffers = filterOfferByHostName(offers, hostIpFilter);
             }
 
