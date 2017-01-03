@@ -352,7 +352,7 @@ public class KafkaScheduler implements Scheduler, Runnable {
             List<Offer> filteredOffers = offers;
 
             if (!hostIpFilter.isEmpty()){
-                filteredOffers = filterOfferByHostName(offers, hostIpFilter);
+                filteredOffers = filterOfferByHostName(filteredOffers, hostIpFilter);
             }
 
             if (!reconciler.isReconciled()) {
