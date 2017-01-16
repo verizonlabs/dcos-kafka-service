@@ -395,9 +395,9 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
 
         if (!config.getExecutorConfiguration().getContainerPath().isEmpty()) {
             envMap.put(KafkaEnvConfigUtils.toEnvName("log.dirs"), config.getExecutorConfiguration().getContainerPath() +
-                    "/" + containerPath);
+                    "/" + containerPath + "/" + brokerName);
         } else {
-            envMap.put(KafkaEnvConfigUtils.toEnvName("log.dirs"), containerPath);
+            envMap.put(KafkaEnvConfigUtils.toEnvName("log.dirs"), containerPath + "/" + brokerName);
         }
 
         envMap.put("TASK_TYPE", KafkaTask.BROKER.name());
