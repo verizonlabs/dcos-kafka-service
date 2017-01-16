@@ -393,15 +393,20 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
             envMap.put(KafkaEnvConfigUtils.toEnvName("port"), Long.toString(port));
         }
 
+        if (!config.getExecutorConfiguration().getContainerPath().isEmpty()) {
+            envMap.put(KafkaEnvConfigUtils.toEnvName("log.dirs"), config.getExecutorConfiguration().getContainerPath() +
+                    "/" + containerPath);
+        } else {
+            envMap.put(KafkaEnvConfigUtils.toEnvName("log.dirs"), containerPath);
+        }
+
         envMap.put("TASK_TYPE", KafkaTask.BROKER.name());
         envMap.put("FRAMEWORK_NAME", config.getServiceConfiguration().getName());
         envMap.put("KAFKA_VER_NAME", config.getKafkaConfiguration().getKafkaVerName());
         envMap.put("KAFKA_ZOOKEEPER_URI", config.getKafkaConfiguration().getKafkaZkUri());
         envMap.put(KafkaEnvConfigUtils.toEnvName("zookeeper.connect"), config.getFullKafkaZookeeperPath());
         envMap.put(KafkaEnvConfigUtils.toEnvName("broker.id"), Integer.toString(brokerId));
-        envMap.put(KafkaEnvConfigUtils.toEnvName("log.dirs"), config.getExecutorConfiguration().getContainerPath() +
-                "/" + containerPath +
-                "/" + brokerName);
+
         envMap.put("KAFKA_HEAP_OPTS", getKafkaHeapOpts(config.getBrokerConfiguration().getHeap()));
 
         return CommandInfo.newBuilder()
