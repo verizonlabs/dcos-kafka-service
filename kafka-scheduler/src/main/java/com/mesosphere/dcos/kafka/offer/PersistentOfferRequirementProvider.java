@@ -422,19 +422,19 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         ZookeeperConfiguration zookeeperConfiguration = config.getZookeeperConfig();
         ExecutorConfiguration executorConfiguration = config.getExecutorConfiguration();
         String frameworkName = config.getServiceConfiguration().getName();
+        String volumeName = brokerName.replace("broker-", executorConfiguration.getVolumeName() + "_");
+        String volumeDriver = executorConfiguration.getVolumeDriver().trim();
 
-        // Get rexray option here.
-        StringBuilder stringBuilder = new StringBuilder();
+        StringBuilder command = new StringBuilder();
         if (executorConfiguration.getVolumeDriver().equalsIgnoreCase("rexray")) {
-            stringBuilder.append("./dvdcli mount --volumename=");
-            stringBuilder.append(brokerName.replace("broker-", executorConfiguration.getVolumeName() + "_"));
-            stringBuilder.append(" --volumedriver=");
-            stringBuilder.append(executorConfiguration.getVolumeDriver().trim());
-            stringBuilder.append(" && ");
+            command = getDvdCLICommand(volumeName, volumeDriver);
+        }
+        if (executorConfiguration.getVolumeDriver().equalsIgnoreCase("pxd")){
+            command = getDvdCLICommand(volumeName, volumeDriver);
         }
 
-        stringBuilder.append("./executor/bin/kafka-executor server ./executor/conf/executor.yml");
-        final String executorCommand = stringBuilder.toString();
+        command.append("./executor/bin/kafka-executor server ./executor/conf/executor.yml");
+        final String executorCommand = command.toString();
 
         Map<String, String> executorEnvMap = new HashMap<>();
         executorEnvMap.put(JAVA_HOME_KEY, JAVA_HOME_VALUE);
@@ -442,6 +442,7 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         executorEnvMap.put("KAFKA_ZOOKEEPER_URI", zookeeperConfiguration.getKafkaZkUri());
         executorEnvMap.put(KafkaEnvConfigUtils.KAFKA_OVERRIDE_PREFIX + "BROKER_ID", Integer.toString(brokerId));
         executorEnvMap.put(CONFIG_ID_KEY, configName);
+
         return CommandInfo.newBuilder()
                 .setValue(executorCommand)
                 .setEnvironment(OfferUtils.environment(executorEnvMap))
@@ -451,6 +452,20 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
                 .addUris(uri(brokerConfiguration.getOverriderUri()))
                 .addUris(uri(executorConfiguration.getExecutorUri()))
                 .build();
+    }
+
+    /*
+    Creates the stringbuilder for the dvdcli command to run before the executor is launched.
+     */
+    private StringBuilder getDvdCLICommand(String volumeName, String volumeDriver){
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("./dvdcli mount --volumename=");
+        stringBuilder.append(volumeName);
+        stringBuilder.append(" --volumedriver=");
+        stringBuilder.append(volumeDriver);
+        stringBuilder.append(" && ");
+
+        return stringBuilder;
     }
 
     private ExecutorInfo getNewExecutorInfo(KafkaSchedulerConfiguration config, String configName, int brokerId)
