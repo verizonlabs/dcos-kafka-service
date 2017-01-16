@@ -447,13 +447,16 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         ExecutorInfo.Builder builder = ExecutorInfo.newBuilder()
                 .setName(brokerName)
                 .setExecutorId(ExecutorID.newBuilder().setValue("").build()) // Set later by ExecutorRequirement
-                .setContainer(getNewContainer(hostPath, containerPath))
                 .setFrameworkId(schedulerState.getStateStore().fetchFrameworkId().get())
                 .setCommand(getNewExecutorCmd(config, configName, brokerId))
                 .addResources(ResourceUtils.getDesiredScalar(role, principal, "cpus", executorConfiguration.getCpus()))
                 .addResources(ResourceUtils.getDesiredScalar(role, principal, "mem", executorConfiguration.getMem()))
                 .addResources(DynamicPortRequirement.getDesiredDynamicPort("API_PORT", role, principal));
 
+        // If we have a host and container path, then set a mesos container.
+        if (!hostPath.isEmpty() && !containerPath.isEmpty()){
+            builder.setContainer(getNewContainer(hostPath, containerPath));
+        }
 
         return builder.build();
     }
