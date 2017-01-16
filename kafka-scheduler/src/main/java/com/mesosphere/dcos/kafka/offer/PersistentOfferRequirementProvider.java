@@ -463,11 +463,12 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         String principal = config.getServiceConfiguration().getPrincipal();
         String hostPath = executorConfiguration.getHostPath();
         String containerPath = executorConfiguration.getContainerPath();
+        String volumeDriver = executorConfiguration.getVolumeDriver();
 
         ExecutorInfo.Builder builder = ExecutorInfo.newBuilder()
                 .setName(brokerName)
                 .setExecutorId(ExecutorID.newBuilder().setValue("").build()) // Set later by ExecutorRequirement
-                .setContainer(getNewContainer(hostPath, containerPath, executorConfiguration, volumeName))
+                .setContainer(getNewContainer(hostPath, containerPath, executorConfiguration, volumeName, volumeDriver))
                 .setFrameworkId(schedulerState.getStateStore().fetchFrameworkId().get())
                 .setCommand(getNewExecutorCmd(config, configName, brokerId))
                 .addResources(ResourceUtils.getDesiredScalar(role, principal, "cpus", executorConfiguration.getCpus()))
@@ -477,7 +478,7 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         return builder.build();
     }
 
-    private ContainerInfo getNewContainer(String hostPath, String containerPath, ExecutorConfiguration config, String volumeName){
+    private ContainerInfo getNewContainer(String hostPath, String containerPath, ExecutorConfiguration config, String volumeName, String volumeDriver){
         ContainerInfo.Builder containerBuilder = ContainerInfo.newBuilder();
         Capabilities capabilities = new Capabilities(new DcosCluster());
 
@@ -491,28 +492,41 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
             log.error(String.format("Unable to detect named VIP support: %s", e));
         } finally {
             if (config.getVolumeDriver().equalsIgnoreCase("rexray")){
-                containerBuilder
-                        .setType(ContainerInfo.Type.MESOS)
-                        .addVolumes(Volume.newBuilder().setSource(
-                                Volume.Source.newBuilder()
-                                        .setDockerVolume(Volume.Source.DockerVolume.newBuilder()
-                                                .setDriver("rexray")
-                                                .setName(volumeName)
-                                                .build())
-                                        .setType(Volume.Source.Type.DOCKER_VOLUME).build())
-                                .setMode(Volume.Mode.RW)
-                                .setContainerPath(VOLUME_PATH));
-            } else {
+                setContainerVolumeOptions(containerBuilder, volumeName, volumeDriver);
+            }
+            if (config.getVolumeDriver().equalsIgnoreCase("pxd")){
+                setContainerVolumeOptions(containerBuilder, volumeName, volumeDriver);
+            }
+            if (!config.getHostPath().isEmpty() && !config.getContainerPath().isEmpty()){
                 containerBuilder.setType(ContainerInfo.Type.MESOS)
                         .addVolumes(Volume.newBuilder()
                                 .setContainerPath(containerPath)
                                 .setHostPath(hostPath)
                                 .setMode(Volume.Mode.RW)
                                 .build());
+            } else {
+                containerBuilder.setType(ContainerInfo.Type.MESOS);
             }
         }
 
         return containerBuilder.build();
+    }
+
+    /*
+    Set the options for docker volume driver here for the executor Container Info.
+     */
+    private ContainerInfo.Builder setContainerVolumeOptions(ContainerInfo.Builder containerBuilder, String volumeName, String volumeDriver){
+        return containerBuilder
+                .setType(ContainerInfo.Type.MESOS)
+                .addVolumes(Volume.newBuilder().setSource(
+                        Volume.Source.newBuilder()
+                                .setDockerVolume(Volume.Source.DockerVolume.newBuilder()
+                                        .setDriver(volumeDriver)
+                                        .setName(volumeName)
+                                        .build())
+                                .setType(Volume.Source.Type.DOCKER_VOLUME).build())
+                        .setMode(Volume.Mode.RW)
+                        .setContainerPath(VOLUME_PATH));
     }
 
     private OfferRequirement getNewOfferRequirementInternal(String configName, int brokerId)
