@@ -384,7 +384,7 @@ public class KafkaScheduler implements Scheduler, Runnable {
 
                 ResourceCleanerScheduler cleanerScheduler = getCleanerScheduler();
                 if (cleanerScheduler != null) {
-                    acceptedOffers.addAll(getCleanerScheduler().resourceOffers(driver, offers));
+                    acceptedOffers.addAll(getCleanerScheduler().resourceOffers(driver, filteredOffers));
                 }
             }
 
