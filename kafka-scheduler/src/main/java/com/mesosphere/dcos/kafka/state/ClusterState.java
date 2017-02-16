@@ -1,10 +1,9 @@
 package com.mesosphere.dcos.kafka.state;
 
-import org.apache.mesos.dcos.Capabilities;
-import org.apache.mesos.dcos.DcosCluster;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.mesos.dcos.Capabilities;
+import org.apache.mesos.dcos.DcosCluster;
 
 import java.net.URISyntaxException;
 

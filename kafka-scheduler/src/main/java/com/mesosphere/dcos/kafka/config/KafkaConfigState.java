@@ -1,6 +1,8 @@
 package com.mesosphere.dcos.kafka.config;
 
 import com.mesosphere.dcos.kafka.offer.OfferUtils;
+import com.mesosphere.dcos.kafka.offer.PersistentOfferRequirementProvider;
+import com.mesosphere.dcos.kafka.state.FrameworkState;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.curator.RetryPolicy;
@@ -10,8 +12,6 @@ import org.apache.mesos.Protos.Labels;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.config.ConfigStore;
 import org.apache.mesos.config.ConfigStoreException;
-import com.mesosphere.dcos.kafka.offer.PersistentOfferRequirementProvider;
-import com.mesosphere.dcos.kafka.state.FrameworkState;
 import org.apache.mesos.curator.CuratorConfigStore;
 
 import java.util.*;

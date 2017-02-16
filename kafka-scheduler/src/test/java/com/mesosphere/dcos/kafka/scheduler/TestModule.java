@@ -1,8 +1,8 @@
 package com.mesosphere.dcos.kafka.scheduler;
 
 import com.google.inject.AbstractModule;
-import io.dropwizard.setup.Environment;
 import com.mesosphere.dcos.kafka.config.KafkaSchedulerConfiguration;
+import io.dropwizard.setup.Environment;
 
 /**
  * A module for dependency injection when running unit tests.

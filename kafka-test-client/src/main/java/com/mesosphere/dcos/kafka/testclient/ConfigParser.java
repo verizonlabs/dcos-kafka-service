@@ -1,13 +1,13 @@
 package com.mesosphere.dcos.kafka.testclient;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.Map.Entry;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.TreeMap;
 
 /**
  * Handles config management across our code as well as settings to be forwarded to Kafka.
