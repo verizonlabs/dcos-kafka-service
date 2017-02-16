@@ -434,20 +434,6 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         }
 
         command.append("./executor/bin/kafka-executor server ./executor/conf/executor.yml");
-        final String executorCommand = command.toString();
-
-        // Get rexray option here.
-        StringBuilder stringBuilder = new StringBuilder();
-        if (executorConfiguration.getVolumeDriver().equalsIgnoreCase("rexray")) {
-            stringBuilder.append("./dvdcli mount --volumename=");
-            stringBuilder.append(brokerName.replace("broker-", executorConfiguration.getVolumeName() + "_"));
-            stringBuilder.append(" --volumedriver=");
-            stringBuilder.append(executorConfiguration.getVolumeDriver().trim());
-            stringBuilder.append(" && ");
-        }
-
-        stringBuilder.append(executorConfiguration.getCommand());
-        final String executorCommand = stringBuilder.toString();
 
         Map<String, String> executorEnvMap = new HashMap<>();
         executorEnvMap.put(JAVA_HOME_KEY, JAVA_HOME_VALUE);
@@ -457,7 +443,7 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         executorEnvMap.put(CONFIG_ID_KEY, configName);
 
         return CommandInfo.newBuilder()
-                .setValue(executorCommand)
+                .setValue(command.toString())
                 .setEnvironment(OfferUtils.environment(executorEnvMap))
                 .addUris(uri(executorConfiguration.getDvdcli()))
                 .addUris(uri(brokerConfiguration.getJavaUri()))
