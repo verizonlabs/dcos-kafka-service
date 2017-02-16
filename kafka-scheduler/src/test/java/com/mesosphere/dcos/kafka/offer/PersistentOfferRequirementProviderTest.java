@@ -169,7 +169,8 @@ public class PersistentOfferRequirementProviderTest {
     }
 
     Assert.assertEquals(286, taskInfo.getCommand().getValue().length());
-    //Assert.assertEquals(149, cmd.getValue().length());
+    Assert.assertEquals(131, cmd.getValue().length());
+
   }
 
   @Test

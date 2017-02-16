@@ -20,7 +20,7 @@ scheduler_configuration:
     cni_network: ${EXECUTOR_CNI_NETWORK:-"dcos"}
     volume_name: ${EXECUTOR_VOLUME_NAME:-""}
     volume_driver: ${EXECUTOR_VOLUME_DRIVER:-""}
-    dvdcli: ${EXECUTOR_DVDCLI:-"file:///opt/mesosphere/bin/dvdcli"}
+    dvdcli: ${EXECUTOR_DVDCLI:-""}
     host_filter: ${EXECUTOR_HOST_FILTER:-[]}
 
   broker:

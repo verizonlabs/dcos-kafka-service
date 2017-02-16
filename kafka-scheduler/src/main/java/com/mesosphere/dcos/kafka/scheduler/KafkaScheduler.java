@@ -342,7 +342,7 @@ public class KafkaScheduler implements Scheduler, Runnable {
 
         for (String filter_term : filters) {
             for (Protos.Offer offer : offers){
-                if (filter_term.equals(offer.getHostname())){
+                if (filter_term.trim().equals(offer.getHostname().trim())){
                     filteredOffers.add(offer);
                 }
             }
@@ -384,7 +384,7 @@ public class KafkaScheduler implements Scheduler, Runnable {
 
                 ResourceCleanerScheduler cleanerScheduler = getCleanerScheduler();
                 if (cleanerScheduler != null) {
-                    acceptedOffers.addAll(getCleanerScheduler().resourceOffers(driver, offers));
+                    acceptedOffers.addAll(getCleanerScheduler().resourceOffers(driver, filteredOffers));
                 }
             }
 
