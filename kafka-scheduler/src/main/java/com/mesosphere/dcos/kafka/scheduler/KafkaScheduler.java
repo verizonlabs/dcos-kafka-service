@@ -342,7 +342,7 @@ public class KafkaScheduler implements Scheduler, Runnable {
 
         for (String filter_term : filters) {
             for (Protos.Offer offer : offers){
-                if (filter_term.equals(offer.getHostname())){
+                if (filter_term.trim().equals(offer.getHostname().trim())){
                     filteredOffers.add(offer);
                 }
             }
@@ -353,7 +353,6 @@ public class KafkaScheduler implements Scheduler, Runnable {
     @Override
     public void resourceOffers(SchedulerDriver driver, List<Offer> offers) {
         try {
-            logOffers(offers);
             reconciler.reconcile(driver);
 
             List<OfferID> acceptedOffers = new ArrayList<>();
@@ -384,7 +383,7 @@ public class KafkaScheduler implements Scheduler, Runnable {
 
                 ResourceCleanerScheduler cleanerScheduler = getCleanerScheduler();
                 if (cleanerScheduler != null) {
-                    acceptedOffers.addAll(getCleanerScheduler().resourceOffers(driver, offers));
+                    acceptedOffers.addAll(getCleanerScheduler().resourceOffers(driver, filteredOffers));
                 }
             }
 
@@ -500,7 +499,6 @@ public class KafkaScheduler implements Scheduler, Runnable {
         for (Offer offer : offers) {
             OfferID offerId = offer.getId();
             if (!acceptedOffers.contains(offerId)) {
-                log.info("Declining offer: " + offerId.getValue());
                 driver.declineOffer(offerId);
             }
         }

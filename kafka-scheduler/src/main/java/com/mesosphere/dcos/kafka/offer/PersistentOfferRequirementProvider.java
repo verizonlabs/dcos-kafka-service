@@ -422,19 +422,18 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         ZookeeperConfiguration zookeeperConfiguration = config.getZookeeperConfig();
         ExecutorConfiguration executorConfiguration = config.getExecutorConfiguration();
         String frameworkName = config.getServiceConfiguration().getName();
+        String volumeName = brokerName.replace("broker-", executorConfiguration.getVolumeName() + "_");
+        String volumeDriver = executorConfiguration.getVolumeDriver().trim();
 
-        // Get rexray option here.
-        StringBuilder stringBuilder = new StringBuilder();
+        StringBuilder command = new StringBuilder();
         if (executorConfiguration.getVolumeDriver().equalsIgnoreCase("rexray")) {
-            stringBuilder.append("./dvdcli mount --volumename=");
-            stringBuilder.append(brokerName.replace("broker-", executorConfiguration.getVolumeName() + "_"));
-            stringBuilder.append(" --volumedriver=");
-            stringBuilder.append(executorConfiguration.getVolumeDriver().trim());
-            stringBuilder.append(" && ");
+            command = getDvdCLICommand(volumeName, volumeDriver);
+        }
+        if (executorConfiguration.getVolumeDriver().equalsIgnoreCase("pxd")){
+            command = getDvdCLICommand(volumeName, volumeDriver);
         }
 
-        stringBuilder.append(executorConfiguration.getCommand());
-        final String executorCommand = stringBuilder.toString();
+        command.append("./executor/bin/kafka-executor server ./executor/conf/executor.yml");
 
         Map<String, String> executorEnvMap = new HashMap<>();
         executorEnvMap.put(JAVA_HOME_KEY, JAVA_HOME_VALUE);
@@ -442,8 +441,9 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         executorEnvMap.put("KAFKA_ZOOKEEPER_URI", zookeeperConfiguration.getKafkaZkUri());
         executorEnvMap.put(KafkaEnvConfigUtils.KAFKA_OVERRIDE_PREFIX + "BROKER_ID", Integer.toString(brokerId));
         executorEnvMap.put(CONFIG_ID_KEY, configName);
+
         return CommandInfo.newBuilder()
-                .setValue(executorCommand)
+                .setValue(command.toString())
                 .setEnvironment(OfferUtils.environment(executorEnvMap))
                 .addUris(uri(executorConfiguration.getDvdcli()))
                 .addUris(uri(brokerConfiguration.getJavaUri()))
@@ -451,6 +451,20 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
                 .addUris(uri(brokerConfiguration.getOverriderUri()))
                 .addUris(uri(executorConfiguration.getExecutorUri()))
                 .build();
+    }
+
+    /*
+    Creates the stringbuilder for the dvdcli command to run before the executor is launched.
+     */
+    private StringBuilder getDvdCLICommand(String volumeName, String volumeDriver){
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("./dvdcli mount --volumename=");
+        stringBuilder.append(volumeName);
+        stringBuilder.append(" --volumedriver=");
+        stringBuilder.append(volumeDriver);
+        stringBuilder.append(" && ");
+
+        return stringBuilder;
     }
 
     private ExecutorInfo getNewExecutorInfo(KafkaSchedulerConfiguration config, String configName, int brokerId)
@@ -463,11 +477,12 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         String principal = config.getServiceConfiguration().getPrincipal();
         String hostPath = executorConfiguration.getHostPath();
         String containerPath = executorConfiguration.getContainerPath();
+        String volumeDriver = executorConfiguration.getVolumeDriver();
 
         ExecutorInfo.Builder builder = ExecutorInfo.newBuilder()
                 .setName(brokerName)
                 .setExecutorId(ExecutorID.newBuilder().setValue("").build()) // Set later by ExecutorRequirement
-                .setContainer(getNewContainer(hostPath, containerPath, executorConfiguration, volumeName))
+                .setContainer(getNewContainer(hostPath, containerPath, executorConfiguration, volumeName, volumeDriver))
                 .setFrameworkId(schedulerState.getStateStore().fetchFrameworkId().get())
                 .setCommand(getNewExecutorCmd(config, configName, brokerId))
                 .addResources(ResourceUtils.getDesiredScalar(role, principal, "cpus", executorConfiguration.getCpus()))
@@ -477,7 +492,8 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         return builder.build();
     }
 
-    private ContainerInfo getNewContainer(String hostPath, String containerPath, ExecutorConfiguration config, String volumeName){
+
+    private ContainerInfo getNewContainer(String hostPath, String containerPath, ExecutorConfiguration config, String volumeName, String volumeDriver){
         ContainerInfo.Builder containerBuilder = ContainerInfo.newBuilder();
         Capabilities capabilities = new Capabilities(new DcosCluster());
 
@@ -490,29 +506,43 @@ public class PersistentOfferRequirementProvider implements KafkaOfferRequirement
         } catch (IOException | URISyntaxException e) {
             log.error(String.format("Unable to detect named VIP support: %s", e));
         } finally {
-            if (config.getVolumeDriver().equalsIgnoreCase(STORAGE_DRIVER)){
-                containerBuilder
-                        .setType(ContainerInfo.Type.MESOS)
-                        .addVolumes(Volume.newBuilder().setSource(
-                                Volume.Source.newBuilder()
-                                        .setDockerVolume(Volume.Source.DockerVolume.newBuilder()
-                                                .setDriver(STORAGE_DRIVER)
-                                                .setName(volumeName)
-                                                .build())
-                                        .setType(Volume.Source.Type.DOCKER_VOLUME).build())
-                                .setMode(Volume.Mode.RW)
-                                .setContainerPath(VOLUME_PATH));
-            } else {
+
+            if (config.getVolumeDriver().equalsIgnoreCase("rexray")){
+                setContainerVolumeOptions(containerBuilder, volumeName, volumeDriver);
+            }
+            if (config.getVolumeDriver().equalsIgnoreCase("pxd")){
+                setContainerVolumeOptions(containerBuilder, volumeName, volumeDriver);
+            }
+            if (!config.getHostPath().isEmpty() && !config.getContainerPath().isEmpty()){
                 containerBuilder.setType(ContainerInfo.Type.MESOS)
                         .addVolumes(Volume.newBuilder()
                                 .setContainerPath(containerPath)
                                 .setHostPath(hostPath)
                                 .setMode(Volume.Mode.RW)
                                 .build());
+            } else {
+                containerBuilder.setType(ContainerInfo.Type.MESOS);
             }
         }
 
         return containerBuilder.build();
+    }
+
+    /*
+    Set the options for docker volume driver here for the executor Container Info.
+     */
+    private ContainerInfo.Builder setContainerVolumeOptions(ContainerInfo.Builder containerBuilder, String volumeName, String volumeDriver){
+        return containerBuilder
+                .setType(ContainerInfo.Type.MESOS)
+                .addVolumes(Volume.newBuilder().setSource(
+                        Volume.Source.newBuilder()
+                                .setDockerVolume(Volume.Source.DockerVolume.newBuilder()
+                                        .setDriver(volumeDriver)
+                                        .setName(volumeName)
+                                        .build())
+                                .setType(Volume.Source.Type.DOCKER_VOLUME).build())
+                        .setMode(Volume.Mode.RW)
+                        .setContainerPath(VOLUME_PATH));
     }
 
     private OfferRequirement getNewOfferRequirementInternal(String configName, int brokerId)

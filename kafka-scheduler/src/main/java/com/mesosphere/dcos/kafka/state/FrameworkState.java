@@ -22,7 +22,7 @@ public class FrameworkState extends SchedulerState {
     private static final Logger log = LoggerFactory.getLogger(FrameworkState.class);
 
     public FrameworkState(ZookeeperConfiguration zkConfig) {
-        super(new CuratorStateStore(zkConfig.getFrameworkName(), zkConfig.getMesosZkUri()));
+        super(new CuratorStateStore(zkConfig.getFrameworkName(), zkConfig.getKafkaZkUri()));
     }
 
     public void recordTasks(List<TaskInfo> taskInfos) throws StateStoreException {
@@ -34,7 +34,6 @@ public class FrameworkState extends SchedulerState {
                     .setExecutorId(taskInfo.getExecutor().getExecutorId())
                     .setState(TaskState.TASK_STAGING)
                     .build();
-            log.info(String.format("- %s => %s", taskInfo, taskStatus));
             log.info("Marking stopped task as failed: {}", TextFormat.shortDebugString(taskInfo));
             taskStatuses.add(taskStatus);
         }

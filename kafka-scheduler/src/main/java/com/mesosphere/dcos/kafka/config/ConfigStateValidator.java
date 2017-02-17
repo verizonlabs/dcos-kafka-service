@@ -1,9 +1,9 @@
 package com.mesosphere.dcos.kafka.config;
 
+import com.mesosphere.dcos.kafka.state.FrameworkState;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import com.mesosphere.dcos.kafka.state.FrameworkState;
 
 import java.util.*;
 

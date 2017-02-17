@@ -2,10 +2,10 @@ package com.mesosphere.dcos.kafka.repair;
 
 import com.mesosphere.dcos.kafka.offer.KafkaOfferRequirementProvider;
 import com.mesosphere.dcos.kafka.offer.OfferUtils;
-import org.apache.mesos.config.ConfigStore;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mesos.Protos.TaskInfo;
+import org.apache.mesos.config.ConfigStore;
 import org.apache.mesos.offer.InvalidRequirementException;
 import org.apache.mesos.offer.OfferRequirement;
 import org.apache.mesos.scheduler.recovery.DefaultRecoveryRequirement;
