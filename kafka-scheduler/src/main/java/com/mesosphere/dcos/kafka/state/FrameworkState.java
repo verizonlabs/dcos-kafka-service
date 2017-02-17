@@ -22,7 +22,7 @@ public class FrameworkState extends SchedulerState {
     private static final Logger log = LoggerFactory.getLogger(FrameworkState.class);
 
     public FrameworkState(ZookeeperConfiguration zkConfig) {
-        super(new CuratorStateStore(zkConfig.getFrameworkName(), zkConfig.getMesosZkUri()));
+        super(new CuratorStateStore(zkConfig.getFrameworkName(), zkConfig.getKafkaZkUri()));
     }
 
     public void recordTasks(List<TaskInfo> taskInfos) throws StateStoreException {
