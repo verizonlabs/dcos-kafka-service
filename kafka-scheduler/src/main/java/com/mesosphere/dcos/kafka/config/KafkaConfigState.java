@@ -32,7 +32,7 @@ public class KafkaConfigState {
    */
   public KafkaConfigState(ZookeeperConfiguration zkConfig) {
     this.configStore = new CuratorConfigStore<>(
-            zkConfig.getFrameworkName(), zkConfig.getMesosZkUri());
+            zkConfig.getFrameworkName(), zkConfig.getKafkaZkUri());
   }
 
   /**
