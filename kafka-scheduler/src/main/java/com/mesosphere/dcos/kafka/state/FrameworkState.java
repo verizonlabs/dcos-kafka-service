@@ -34,7 +34,6 @@ public class FrameworkState extends SchedulerState {
                     .setExecutorId(taskInfo.getExecutor().getExecutorId())
                     .setState(TaskState.TASK_STAGING)
                     .build();
-            log.info(String.format("- %s => %s", taskInfo, taskStatus));
             log.info("Marking stopped task as failed: {}", TextFormat.shortDebugString(taskInfo));
             taskStatuses.add(taskStatus);
         }
